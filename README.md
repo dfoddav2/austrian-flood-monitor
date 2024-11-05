@@ -1,4 +1,5 @@
 # Austrian Flood Monitor
+
 Repository for the group work of WS24/25 Software Engineering and Project Management.
 
 ## Overview
@@ -53,6 +54,8 @@ client
 
 The `server` directory contains the Bun + Elysia.js backend application and database setup logic using Prisma. In general API endpoints can be created from the `src` folder and changes to the database can be done inside the `prisma.schema` file.
 
+You can find actual database queries made via Prisma Client in the `sql.ts` if you want to create any new query, write it here. And use it inside the `index.ts` or any other route of the Elysia application.
+
 > [!IMPORTANT]  
 > Database changes must be migrated by starting the database and then running `bun prisma migrate dev` inside the `server` directory
 
@@ -71,6 +74,8 @@ server
 │       └── seed.mjs
 ├── src/
 │   └── index.ts
+|   └── prisma.ts
+|   └── sql.ts
 ├── tsconfig.json
 └── README.md
 ```
@@ -79,14 +84,14 @@ server
 
    **For group members**
 
-   Download the `.env` files from Jira. As it may contain secret information like access tokens, we can not track it in the repository.
+   Download the `.env` files from Jira. As it may contain secret information like access tokens, we can not track it in the repository. Once you have downloaded the `.env` files, make sure to put them in their corresponding directory (as also seen in the file structure tree) and rename them to simply `.env`, strip anything after or before it.
 
-   ![IMPORTANT] 
+   > [!NOTE]  
+   > There are two separate `.env` files, one for the main directory and one for the `server` directory - this is needed because of the different scopes of accessing the database from Docker / local dev environment.
 
    **For outsiders**
 
-   We will create an outline of how you may set up your own `.env` files to work in the project.
-
+   We will in the future create an outline of how you may set up your own `.env` files to work in the project.
 
 3. **Install dependencies:**
 
@@ -125,13 +130,11 @@ cd austrian-flood-monitor
 
 ### Running the Application
 
-The application currently focuses on a local development approach, so only the 
+The application currently focuses on a local development approach, so for development I recommend starting them separately in different terminals, so that you can see all of their logs. However, for a quick glance into the application we also offer a single line setup.
 
-#### Start eveything all at once
+#### Start eveything all at once with a single line
 
-
-
-#### Start things separately
+#### Start things separately (recommended for development)
 
 1. **Start the PostgreSQL database using Docker:**
 
@@ -154,7 +157,7 @@ You may wish to stay attached to the containers to see the logs, to do so just l
 
 3. **Start the backend:**
 
-   Move into the server directory and 
+   Move into the server directory and
 
    ```sh
    cd server # Depends on your CWD
@@ -163,7 +166,7 @@ You may wish to stay attached to the containers to see the logs, to do so just l
 
 4. **See database status: (optional)**
 
-   Optionally you can also see the current state / make changes in the database via the intuitive and easy-to-use prisma studio. 
+   Optionally you can also see the current state / make changes in the database via the intuitive and easy-to-use prisma studio.
    To start it up, you just simply have to move into the server directory and invoke it. (You may also start it via `bun prisma studio`)
 
    ```sh
@@ -187,6 +190,15 @@ To learn more about the technologies used in this project, take a look at the fo
 - [Bun Documentation](https://bun.sh/docs)
 - [Elysia.js Documentation](https://elysia.js.org/docs)
 - [Prisma Documentation](https://www.prisma.io/docs)
+
+## Recommended extensions
+
+I recommend you install the following extensions for this stack if you are using VSC as your IDE. (If you are not using VSC you may still find similar alternatives.)
+
+- [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
+- [GitLens — Git supercharged](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens)
+- [Pretty TypeScript Errors](https://marketplace.visualstudio.com/items?itemName=yoavbls.pretty-ts-errors)
+- GitHub Copilot
 
 ## Contributing
 

@@ -1,6 +1,8 @@
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
 
+import { sql } from "./sql";
+
 const app = new Elysia()
   .use(
     cors({
@@ -12,7 +14,13 @@ const app = new Elysia()
   .get("/testing", async ({ set }) => {
     console.log("Request for testing received");
     set.status = 200;
-    return { message: "Hello from Elysia" };
+    try {
+      const defaultUser = sql.getDefaultUserData();
+      return defaultUser;
+    } catch (error) {
+      set.status = 400;
+      return { message: "Something went wrong" };
+    }
   })
   .get("/", () => "Hello Elysia")
   .listen({ port: "9512" });

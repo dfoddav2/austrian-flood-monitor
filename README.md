@@ -80,34 +80,36 @@ server
 └── README.md
 ```
 
-2. **Set up environment variables:**
+## Setup
 
-   **For group members**
+### Set up environment variables:
 
-   Download the `.env` files from Jira. As it may contain secret information like access tokens, we can not track it in the repository. Once you have downloaded the `.env` files, make sure to put them in their corresponding directory (as also seen in the file structure tree) and rename them to simply `.env`, strip anything after or before it.
+#### For group members
 
-   > [!NOTE]  
-   > There are two separate `.env` files, one for the main directory and one for the `server` directory - this is needed because of the different scopes of accessing the database from Docker / local dev environment.
+Download the `.env` files from Jira. As it may contain secret information like access tokens, we can not track it in the repository. Once you have downloaded the `.env` files, make sure to put them in their corresponding directory (as also seen in the file structure tree) and rename them to simply `.env`, strip anything after or before it.
 
-   **For outsiders**
+> [!NOTE]  
+> There are two separate `.env` files, one for the main directory and one for the `server` directory - this is needed because of the different scopes of accessing the database from Docker / local dev environment.
 
-   We will in the future create an outline of how you may set up your own `.env` files to work in the project.
+#### For outsiders
 
-3. **Install dependencies:**
+We will in the future create an outline of how you may set up your own `.env` files to work in the project.
 
-   - For the frontend:
+### Install dependencies:
 
-     ```sh
-     cd client # Depends on your CWD
-     npm install
-     ```
+For the frontend:
 
-   - For the backend:
+```sh
+cd client # Depends on your CWD
+npm install
+```
 
-     ```sh
-     cd server # Depends on your CWD
-     bun install
-     ```
+For the backend:
+
+```sh
+cd server # Depends on your CWD
+bun install
+```
 
 ## Getting Started
 
@@ -133,6 +135,23 @@ cd austrian-flood-monitor
 The application currently focuses on a local development approach, so for development I recommend starting them separately in different terminals, so that you can see all of their logs. However, for a quick glance into the application we also offer a single line setup.
 
 #### Start eveything all at once with a single line
+
+Depending on your OS you can start all parts of the application with just a single `bat` or `sh` script from the source directory:
+
+> [!NOTE]
+> You still have to
+
+For Windows:
+
+```powershell
+./start-all.bat
+```
+
+For Linux / MacOS:
+
+```sh
+./start-all.sh
+```
 
 #### Start things separately (recommended for development)
 
@@ -198,6 +217,7 @@ I recommend you install the following extensions for this stack if you are using
 - [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
 - [GitLens — Git supercharged](https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens)
 - [Pretty TypeScript Errors](https://marketplace.visualstudio.com/items?itemName=yoavbls.pretty-ts-errors)
+- Prettier
 - GitHub Copilot
 
 ## Contributing

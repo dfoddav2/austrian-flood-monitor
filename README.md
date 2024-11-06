@@ -139,7 +139,7 @@ The application currently focuses on a local development approach, so for develo
 Depending on your OS you can start all parts of the application with just a single `bat` or `sh` script from the source directory:
 
 > [!NOTE]
-> You still have to
+> You still have to install packages and `.env` variables as outlined before.
 
 For Windows:
 

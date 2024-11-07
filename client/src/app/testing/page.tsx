@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { eden } from "@/utils/api";
 
 type TestingResponse = {
-  data: any;
+  data: unknown;
   error: null | string;
   response: Response;
   status: number;

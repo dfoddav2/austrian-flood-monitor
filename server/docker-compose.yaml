@@ -24,18 +24,17 @@ services:
         reservations:
           memory: 512M
 
-  # Here we can add a service in the future to setup the database with the schema and example data
   db-setup:
     container_name: flood-monitoring-db-setup
-    image: node:20-slim
+    image: oven/bun:latest
     depends_on:
       db:
         condition: service_healthy
     volumes:
-      - ./server:/app
+      - .:/app
     working_dir: /app
     entrypoint:
-      ["sh", "-c", "apt-get update && apt-get install -y openssl && npm install && npx prisma migrate reset --force && npm run seed"]
+      ["sh", "-c", "bun install && bunx prisma migrate reset --force && bun run seed"]
     environment:
       DATABASE_URL: ${DATABASE_URL}
     deploy:
@@ -44,6 +43,21 @@ services:
           memory: 512M
         reservations:
           memory: 256M
+
+  backend:
+    container_name: flood-monitoring-backend
+    image: oven/bun:latest
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: ["bun", "serve"]
+    ports:
+      - 9512:9512
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   db-data:

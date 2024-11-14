@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Austrian Flood Monitor - Client
 
-## Getting Started
+Welcome to the Client application of the Austrian Flood Monitor project. This is the frontend part comprising of a Next.js application.
 
-First, run the development server:
+See the top level [README.md here](../README.md).
 
-```bash
+## Prerequisites
+
+You need:
+- Node.js (v16 or later)
+
+And run `npm install` once before running anything locally.
+
+## Starting the frontend
+
+Simply move into the `client` directory root and run the application. You may also run using `bun run dev`, but that may have some bugs related to [this issue](https://github.com/oven-sh/bun/issues/14699).
+
+```sh
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Structure of `client`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The `client` directory contains the Next.js frontend application.
+Our project utilizes the newer App Router feature of Next.js (instead of Pages Router) and the routes can be defined via the filesystem.
+In general, `page.tsx` files define endpoints, `layout.tsx` files define wrappers and any general React component should be in the `components` directory. Like with many other frameworks, media, fonts and the like should all go into the `public` directory.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```plaintext
+client
+├── .eslintrc.json
+├── .gitignore
+├── .next
+├── next-env.d.ts
+├── next.config.ts
+├── package.json
+├── package-lock.json
+├── tsconfig.json
+├── README.md (<- You are reading me)
+├── public
+│   └── The public folder holds public assets like images
+└── src/
+    ├── app/
+    │   ├── [example_directory]
+    │   │   └── File based routing
+    │   ├── layout.tsx
+    │   │   └── Page wrapper component definitions
+    │   ├── page.tsx
+    │   │   └── Page definition
+    │   └── globals.css
+    │       └── Top level CSS definitions, vars
+    ├── styles/
+    │   └── Reusable component and page styles go here
+    └── utils/
+        └── api.ts
+            └── Sets up connection to the backend
+```
 
-## Learn More
+## Quick guide for contributing
 
-To learn more about Next.js, take a look at the following resources:
+- All you have to worry about in this directory is the `src` and `public` directory. Inside `/src/app` use `page.tsx` and `layout.tsx` files in a folder based routing fashion to create endpoints.
+- Define reusable styles in the `/src/styles` directory or in the `globals.css` for global styles.
+- Put reusable functions and utility logic into the `/src/utils` directory.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Relevant docs and guides online
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Next.JS](https://nextjs.org/docs)

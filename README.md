@@ -1,99 +1,61 @@
 # Austrian Flood Monitor
 
-Repository for the group work of WS24/25 Software Engineering and Project Management.
+Repository for the group work of WS24/25 Software Engineering and Project Management. The latest version of `main` can always be found hosted online at the following link:
+[Austrian Flood Monitor](https://austrian-flood-monitor.vercel.app/)
 
 ## Overview
 
-Austrian Flood Monitoring is a comprehensive platform for reporting, monitoring, and managing floods in Austria. The project consists of a Next.js frontend and a Bun + Elysia.js backend, with a PostgreSQL database managed using Prisma.
+Austrian Flood Monitoring is a comprehensive platform for reporting, monitoring, and managing floods in Austria. The project consists of a Next.js frontend and a Bun + Elysia.js backend, with a PostgreSQL database managed using Prisma ORM.
 
-## Code structure
+## Code structure and contribution
 
-On the top level:
+Code structure of the application can always be found in the relevant directory's `README.md` file, with a short guide on how to contribute.
 
 ```plaintext
 Top Level
 ├── client
 │   └── Next.js frontend
+│   └── README.md
 ├── server
 │   ├── Bun + Elysia.js backend
 │   └── Database setup logic + Prisma
-├── .env
-│   └── Variables related to the docker composition
-└── docker-compose.yaml
-    └── Starting up and seeding the database
+│   └── README.md
+├── start-all.bat/.sh
+│   └── Scripts to run the whole application with one line
+├── docker-compose.yaml
+│    └── Starting up and seeding the database
+└── README.md (Yes, you are reading me at the moment :D)
 ```
 
-### Structure of `client`
-
-The `client` directory contains the Next.js frontend application.
-Our project utilizes the newer App Router feature of Next.js (instead of Pages Router) and the routes can be defined via the filesystem.
-In general, `page.tsx` files define endpoints, `layout.tsx` files define wrappers and any general React component should be in the `components` directory. Like with many other frameworks, media, fonts and the like should all go into the `public` directory.
-
-```plaintext
-client
-├── .eslintrc.json
-├── .gitignore
-├── .next
-├── next-env.d.ts
-├── next.config.ts
-├── package.json
-├── public
-├── README.md
-├── src/
-│   ├── app/
-│   │   ├── layout.tsx
-│   │   ├── page.tsx
-│   │   ├── globals.css
-│   │   └── styles/
-│   └── components/
-├── tsconfig.json
-└── types/
-```
-
-### Structure of `server`
-
-The `server` directory contains the Bun + Elysia.js backend application and database setup logic using Prisma. In general API endpoints can be created from the `src` folder and changes to the database can be done inside the `prisma.schema` file.
-
-You can find actual database queries made via Prisma Client in the `sql.ts` if you want to create any new query, write it here. And use it inside the `index.ts` or any other route of the Elysia application.
-
-> [!IMPORTANT]  
-> Database changes must be migrated by starting the database and then running `bun prisma migrate dev` inside the `server` directory
-
-```plaintext
-server
-├── .env
-│   └── For storing variables related to local development
-├── .gitignore
-├── bun.lockb
-│   └── Lockfile used by Bun, similar to package lock
-├── package.json
-├── prisma/
-│   ├── migrations/
-│   ├── schema.prisma
-│   └── utils/
-│       └── seed.mjs
-├── src/
-│   └── index.ts
-|   └── prisma.ts
-|   └── sql.ts
-├── tsconfig.json
-└── README.md
-```
+Links to the other `README` files:
+- [Client README.md](./client/README.md)
+- [Server README.md](./server/README.md)
 
 ## Setup
 
 ### Set up environment variables:
 
+This depends on whether you are part of our inner development team for the project or not.
+
 #### For group members
 
-Download the `.env` files from Jira. As it may contain secret information like access tokens, we can not track it in the repository. Once you have downloaded the `.env` files, make sure to put them in their corresponding directory (as also seen in the file structure tree) and rename them to simply `.env`, strip anything after or before it.
+Download the `.env` files from `Team 3` of the `Software Engineering` class on `Teams`. As it may contain secret information like access tokens, we can not track it in the repository.
+Once you have downloaded the `.env` file, make sure to put it in its rightful place, which is in the server directory: `.\server`.
 
 > [!NOTE]  
-> There are two separate `.env` files, one for the main directory and one for the `server` directory - this is needed because of the different scopes of accessing the database from Docker / local dev environment.
+> The file must be named `.env` with no file extension at all. If you have leftover `.env` files from the previous branches, then make sure to delete those and get the new one.
 
 #### For outsiders
 
-We will in the future create an outline of how you may set up your own `.env` files to work in the project.
+Here is an outline of what it may look like:
+
+```env
+POSTGRES_PASSWORD=   ...
+POSTGRES_HOST=       ...
+POSTGRES_DB=         ...
+POSTGRES_PORT=       ...
+DATABASE_URL=        ...
+```
 
 ### Install dependencies:
 
@@ -121,7 +83,7 @@ bun install
 
 ### Installation
 
-Start by cloning the repository. For now, the repository has been set to private so make sure you have your GitHub account set up in you preferred IDE / git credentials manager.
+Start by cloning the repository. The repository is public, so you should easily be able to do this.
 
 **Clone the repository:**
 
@@ -132,7 +94,7 @@ cd austrian-flood-monitor
 
 ### Running the Application
 
-The application currently focuses on a local development approach, so for development I recommend starting them separately in different terminals, so that you can see all of their logs. However, for a quick glance into the application we also offer a single line setup.
+I myself recommend starting the backend and frontend in separate terminals, so that I can easily keep track of the separate logs, and the hot-reload of Next.js does not pollute the logs. But you also have the option of starting everything at once.
 
 #### Start eveything all at once with a single line
 
@@ -155,15 +117,16 @@ For Linux / MacOS:
 
 #### Start things separately (recommended for development)
 
-1. **Start the PostgreSQL database using Docker:**
+1. **Start the backend:**
 
-The database can be started from the root of the application using a `docker-compose` file. This file has two services, one initiates the database and another one that sets up the database, applying the Prisma schema, migrations and then runs a seeding script.
+   The backend can be started from the `server` directory of the application using a `docker-compose` file. This file has three services, first one initiates the database and another one that sets up the database, applying the Prisma schema, migrations, running a seeding script and then the Bun server also starts up.
 
-```sh
-docker-compose up -d
-```
+   ```sh
+   cd server # Depends on your CWD
+   docker-compose up
+   ```
 
-You may wish to stay attached to the containers to see the logs, to do so just leave out the tag `-d`.
+   You may wish to detach from the containers, to do so just add the tag `-d` to the end of the compose.
 
 2. **Start the frontend:**
 
@@ -174,23 +137,17 @@ You may wish to stay attached to the containers to see the logs, to do so just l
    npm run dev
    ```
 
-3. **Start the backend:**
+3. **See database status, Prisma Studio: (optional)**
 
-   Move into the server directory and
+   Optionally you can also see the current state / make changes in the database via the intuitive and easy-to-use Prisma Studio.
 
-   ```sh
-   cd server # Depends on your CWD
-   bun serve
-   ```
-
-4. **See database status: (optional)**
-
-   Optionally you can also see the current state / make changes in the database via the intuitive and easy-to-use prisma studio.
    To start it up, you just simply have to move into the server directory and invoke it. (You may also start it via `bun prisma studio`)
+   
+   The `DATABASE_URL` is needed before the command (just like with `prisma migrate`) because our `.env` file is set up for connecting inside of Docker, but when we are connecting from our device, we connect via `localhost` rather than the service name.
 
    ```sh
    cd server # Depends on your CWD
-   npx prisma studio
+   DATABASE_URL=postgres://postgres:your-super-secret-and-long-postgres-password@localhost:5432/postgres npx prisma studio
    ```
 
 ### Accessing the Application
@@ -226,4 +183,4 @@ Contributions are welcome! Please open an issue or submit a pull request for any
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.

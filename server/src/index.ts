@@ -1,27 +1,78 @@
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
+import { jwt } from "@elysiajs/jwt";
+import { swagger } from "@elysiajs/swagger";
 
-import { sql } from "./sql";
+import { logger } from "@bogeychan/elysia-logger";
+import pretty from "pino-pretty";
+
+import { panic } from "@utils/panic";
+import { sql } from "@server/sql";
 
 const app = new Elysia()
   .use(
-    cors({
-      origin: "*", // Allow all origins
-      methods: ["GET", "POST"], // Allow specific HTTP methods
-      allowedHeaders: ["Content-Type", "Authorization"], // Allow specific headers
+    logger({
+      level: "info",
+      stream: pretty({ colorize: true }),
     })
   )
-  .get("/testing", async ({ set }) => {
-    console.log("Request for testing received");
-    set.status = 200;
-    try {
-      const defaultUser = sql.getDefaultUserData();
-      return defaultUser;
-    } catch (error) {
-      set.status = 400;
-      return { message: "Something went wrong" };
+  .use(
+    cors({
+      credentials: true,
+      // methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization", "*"],
+      origin: true,
+    })
+  )
+  .use(
+    swagger({
+      autoDarkMode: true,
+      path: "/docs",
+      exclude: ["/docs", "/docs/json", "/"],
+      documentation: {
+        info: {
+          title: "Austrian Flood Monitor API",
+          version: "1.0.0",
+          description:
+            "API for the backend of the Austrian Flood Monitor project.",
+        },
+        tags: [
+          { name: "auth" },
+          { name: "admin" },
+          { name: "user" },
+          { name: "report" },
+          { name: "misc" },
+        ],
+      },
+    })
+  )
+  .use(
+    jwt({
+      name: "jwt",
+      secret: process.env.JWT_SECRET ?? panic("JWT_SECRET not set"),
+    })
+  )
+  .get(
+    "/testing",
+    async ({ set }) => {
+      console.log("Request for testing received");
+      set.status = 200;
+      try {
+        const defaultUser = sql.getDefaultUserData();
+        return defaultUser;
+      } catch (error) {
+        set.status = 400;
+        return { message: "Something went wrong" };
+      }
+    },
+    {
+      detail: {
+        tags: ["misc"],
+        description:
+          "This is a testing endpoint to check if the server is running, and to test the connection to the database.",
+      },
     }
-  })
+  )
   .get("/", () => "Hello Elysia")
   .listen({ port: "9512" });
 

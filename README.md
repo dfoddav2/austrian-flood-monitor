@@ -24,7 +24,7 @@ Top Level
 │   └── Scripts to run the whole application with one line
 ├── docker-compose.yaml
 │    └── Starting up and seeding the database
-└── README.md (Yes, you are reading me at the moment :D)
+└── README.md (<- Yes, you are reading me at the moment)
 ```
 
 Links to the other `README` files:
@@ -50,7 +50,11 @@ Once you have downloaded the `.env` file, make sure to put it in its rightful pl
 Here is an outline of what it may look like:
 
 ```env
+# Secrets
 POSTGRES_PASSWORD=   ...
+JWT_SECRET=          ...
+
+# Database connections
 POSTGRES_HOST=       ...
 POSTGRES_DB=         ...
 POSTGRES_PORT=       ...
@@ -137,7 +141,7 @@ For Linux / MacOS:
    npm run dev
    ```
 
-3. **See database status, Prisma Studio: (optional)**
+3. **See database status, Prisma Studio:** (optional)
 
    Optionally you can also see the current state / make changes in the database via the intuitive and easy-to-use Prisma Studio.
 
@@ -149,6 +153,11 @@ For Linux / MacOS:
    cd server # Depends on your CWD
    DATABASE_URL=postgres://postgres:your-super-secret-and-long-postgres-password@localhost:5432/postgres npx prisma studio
    ```
+
+4. **Swagger UI:** (optional)
+
+   The backend also implements Swagger UI based docs, giving you a quick overivew of the available endpoints, and allowing you to send requests to them directly from the web interface. The interface can be found on the `/docs` endpoint of the server url, meaning that you can find it from your browser at:
+   [http://localhost:9512/docs](http://localhost:9512/docs)
 
 ### Accessing the Application
 

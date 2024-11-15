@@ -72,13 +72,24 @@ All you have to worry about in this directory is the `src` and `prisma` director
 ### Make changes to the database
 
 - Make changes to the table definitions inside `./prisma/schema.prisma`, if you need custom change that Prisma can not provide, you can make changes directly to SQL migrations.
-- Once you have made changes you have to migrate them with: `DATABASE_URL=postgres://postgres:your-super-secret-and-long-postgres-password@localhost:5432/postgres bun prisma migrate dev`.
+- Once you have made changes you have to migrate them with: 
+    ```sh
+    DATABASE_URL=postgres://postgres:your-super-secret-and-long-postgres-password@localhost:5432/postgres bun prisma migrate dev
+    ```
 - Make sure to also update the prepopulated data inside `./prisma/utils/seed.mjs` to fit the new schema.
 
 ### Overview the database
 
 You can start a `Prisma Studio` web interface through which you can see and manipulate data inside the database, real time:
-`DATABASE_URL=postgres://postgres:your-super-secret-and-long-postgres-password@localhost:5432/postgres npx prisma studio`
+
+```sh
+DATABASE_URL=postgres://postgres:your-super-secret-and-long-postgres-password@localhost:5432/postgres npx prisma studio
+```
+
+### Swagger UI
+
+The backend also implements Swagger UI based docs, giving you a quick overivew of the available endpoints, and allowing you to send requests to them directly from the web interface. The interface can be found on the `/docs` endpoint of the server url, meaning that you can find it from your browser at:
+[http://localhost:9512/docs](http://localhost:9512/docs)
 
 ## Relevant docs and guides online
 

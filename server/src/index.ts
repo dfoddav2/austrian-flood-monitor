@@ -5,7 +5,8 @@ import { swagger } from "@elysiajs/swagger";
 
 import { logger } from "@bogeychan/elysia-logger";
 import pretty from "pino-pretty";
-
+import { auth } from "@server/auth";
+import { admin } from "@server/admin";
 import { panic } from "@utils/panic";
 import { sql } from "@server/sql";
 
@@ -52,6 +53,8 @@ const app = new Elysia()
       secret: process.env.JWT_SECRET ?? panic("JWT_SECRET not set"),
     })
   )
+  .use(auth)
+  .use(admin)
   .get(
     "/testing",
     async ({ set }) => {

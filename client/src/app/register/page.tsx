@@ -23,17 +23,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { eden } from "@/utils/api";
-import { useAuthStore } from '@/store/authStore';
-import { useRouter } from "next/navigation";
 // import { useEffect, useState } from "react";
 // import { eden } from "@/utils/api";
 
-export default function LoginPage() {
-  const setToken = useAuthStore((state) => state.setToken);
-  const router = useRouter();
-
+export default function RegisterPage() {
   const formSchema = z.object({
+    username: z.string().min(5).max(50),
     email: z.string().email().min(8).max(50),
     password: z
       .string()
@@ -49,38 +44,43 @@ export default function LoginPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      username: "",
       email: "",
       password: "",
     },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // console.log(values);
-    eden.auth.login
-      .post(values)
-      .then((data) => {
-        console.log("Outcome: ", data);
-        setToken(
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvaG4gRG9lIiwiaWQiOjE1MTYyMzkwMjJ9.rSPHJtP1NBpGdqq5MUk5-Y64joqWLrBkIRV6fcbAafE"
-        );
-        router.push("/");
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+    // Do something with the form values.
+    // ✅ This will be type-safe and validated.
+    console.log(values);
   }
 
   return (
     <div>
-      <h1 className="text-3xl font-bold pb-4">This is the login page</h1>
+      <h1 className="text-3xl font-bold pb-4">This is the register page</h1>
       <Card>
         <CardHeader>
-          <CardTitle>Login</CardTitle>
+          <CardTitle>Register</CardTitle>
           <CardDescription>Please note the requirements</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Username" {...field} />
+                    </FormControl>
+                    <FormDescription>Minimum 5 characters</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="email"
@@ -121,12 +121,12 @@ export default function LoginPage() {
         </CardContent>
         <CardFooter>
           <div className="flex flex-col">
-            <CardDescription>No account yet?</CardDescription>
+            <CardDescription>Already have an account?</CardDescription>
             <Link
-              href="/register"
+              href="/login"
               className="text-blue-500 hover:text-blue-700 hover:underline text-sm"
             >
-              Register here
+              Login here
             </Link>
           </div>
         </CardFooter>

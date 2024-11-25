@@ -18,7 +18,7 @@ export default function Testing() {
 
   useEffect(() => {
     // This code runs when the component mounts
-    console.log("Component mounted");
+    // console.log("Component mounted");
 
     // Fetch data from the server or perform other side effects here
     eden.testing
@@ -32,14 +32,14 @@ export default function Testing() {
         console.error(error);
       })
       .finally(() => {
-        console.log("Request completed");
+        // console.log("Request completed");
         setLoading(false);
       });
 
     // Cleanup function (optional)
-    return () => {
-      console.log("Component unmounted");
-    };
+    // return () => {
+    //   console.log("Component unmounted");
+    // };
   }, []);
 
   return (

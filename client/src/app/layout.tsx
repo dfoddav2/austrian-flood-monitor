@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import localFont from "next/font/local";
 import "./globals.css";
 
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu";
 import { ThemeProvider } from "@/components/theme-provider";
-import { ModeToggle } from "@/components/ui/theme-toggle";
+import AuthInitializer from "@/components/AuthInitializer";
+import Navbar from "@/components/Navbar";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -46,36 +39,8 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <nav className="bg-gray-800 dark:bg-gray-900 p-4 w-full flex justify-between items-center">
-            <Link href="/" className="text-white text-2xl font-bold">
-              AFM
-            </Link>
-            <div className="flex gap-1">
-              <NavigationMenu>
-                <NavigationMenuList>
-                  <NavigationMenuItem>
-                    <Link href="/testing" legacyBehavior passHref>
-                      <NavigationMenuLink
-                        className={navigationMenuTriggerStyle()}
-                      >
-                        Testing
-                      </NavigationMenuLink>
-                    </Link>
-                  </NavigationMenuItem>
-                  <NavigationMenuItem>
-                    <Link href="/login" legacyBehavior passHref>
-                      <NavigationMenuLink
-                        className={navigationMenuTriggerStyle()}
-                      >
-                        Login
-                      </NavigationMenuLink>
-                    </Link>
-                  </NavigationMenuItem>
-                </NavigationMenuList>
-              </NavigationMenu>
-              <ModeToggle />
-            </div>
-          </nav>
+          <AuthInitializer />
+          <Navbar />
           <main className="flex flex-col items-center justify-center flex-grow p-4">
             {children}
           </main>

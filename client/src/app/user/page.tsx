@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 
 export default function UserPage() {
   const user = useAuthStore((state) => state.user);
+  
+
   return (
     <div>
       <h1 className="text-3xl font-bold">User page</h1>

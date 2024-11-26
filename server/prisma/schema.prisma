@@ -14,7 +14,44 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  ADMIN
+  RESPONDER
+  USER
+}
+
 model User {
   id String @id @unique @default(cuid())
+  email String @unique
   name String
+  username String @unique
+  password String
+  userRole UserRole @default(USER)
+  reports Report[]
+}
+
+model Report {
+  // Meta
+  id String @id @unique @default(cuid())
+  createdAt DateTime  @default(now())
+  author User @relation(fields: [authorId], references: [id])
+  authorId String
+
+  // Content
+  title String
+  description String
+  latitude Float
+  longitude Float
+  images Image[]
+}
+
+model Image {
+  // Meta
+  id String @id @unique @default(cuid())
+  report Report @relation(fields: [reportId], references: [id])
+  reportId String
+
+  // Content
+  source String
+  description String
 }

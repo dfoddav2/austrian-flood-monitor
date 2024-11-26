@@ -22,7 +22,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   setToken: (token: string) => {
     console.log("Setting token:", token);
     // Store the token in cookies
-    Cookies.set("token", token, { expires: 7 });
+    Cookies.set("token", token, {
+      expires: 7,
+      // httpOnly: true,
+      // secure: true,
+      sameSite: 'Lax'
+    });
 
     // Decode the token to get user info
     console.log("Decoding user from tokend:", token);

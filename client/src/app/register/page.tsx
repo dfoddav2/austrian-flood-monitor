@@ -23,13 +23,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-// import { useEffect, useState } from "react";
-// import { eden } from "@/utils/api";
+import { eden } from "@/utils/api";
+import { useAuthStore } from "@/store/authStore";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
+  const setToken = useAuthStore((state) => state.setToken);
+  const router = useRouter();
+
   const formSchema = z.object({
-    username: z.string().min(5).max(50),
     email: z.string().email().min(8).max(50),
+    name: z.string().min(5).max(50),
+    username: z.string().min(5).max(50),
     password: z
       .string()
       .min(8, "Password must be at least 8 characters long")
@@ -51,9 +56,21 @@ export default function RegisterPage() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+    eden.auth.register
+      .post(values)
+      .then((response) => {
+        console.log("Outcome: ", response);
+
+        if (response.status !== 200) {
+          console.error(response.data.error);
+        } else {
+          setToken(response.data.token);
+          router.push("/");
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
 
   return (
@@ -69,20 +86,6 @@ export default function RegisterPage() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Username" {...field} />
-                    </FormControl>
-                    <FormDescription>Minimum 5 characters</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
@@ -93,6 +96,34 @@ export default function RegisterPage() {
                     <FormDescription>
                       Must be a valid E-mail address
                     </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Name" {...field} />
+                    </FormControl>
+                    <FormDescription>Your full name</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Username" {...field} />
+                    </FormControl>
+                    <FormDescription>Minimum 5 characters</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -34,7 +34,7 @@ model Report {
   // Meta
   id String @id @unique @default(cuid())
   createdAt DateTime  @default(now())
-  author User @relation(fields: [authorId], references: [id])
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId String
 
   // Content
@@ -48,7 +48,7 @@ model Report {
 model Image {
   // Meta
   id String @id @unique @default(cuid())
-  report Report @relation(fields: [reportId], references: [id])
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
   reportId String
 
   // Content

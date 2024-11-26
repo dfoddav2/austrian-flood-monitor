@@ -7,6 +7,7 @@ import { logger } from "@bogeychan/elysia-logger";
 import pretty from "pino-pretty";
 import { auth } from "@server/auth";
 import { admin } from "@server/admin";
+import { user } from "@server/user";
 import { panic } from "@utils/panic";
 import { sql } from "@server/sql";
 
@@ -53,29 +54,45 @@ const app = new Elysia()
       secret: process.env.JWT_SECRET ?? panic("JWT_SECRET not set"),
     })
   )
-  .use(auth)
-  .use(admin)
-  .get(
-    "/testing",
-    async ({ set }) => {
-      console.log("Request for testing received");
-      set.status = 200;
-      try {
-        const defaultUser = sql.getDefaultUserData();
-        return defaultUser;
-      } catch (error) {
-        set.status = 400;
-        return { message: "Something went wrong" };
-      }
-    },
-    {
-      detail: {
-        tags: ["misc"],
-        description:
-          "This is a testing endpoint to check if the server is running, and to test the connection to the database.",
-      },
+  .resolve(async ({ jwt, cookie }) => {
+    console.log("Resolve middleware executed"); // Global logging
+
+    interface Token {
+      id: string;
+      userRole: string;
+      email: string;
     }
-  )
+    let token: { id: string; userRole: string; email: string } | null = null;
+
+    console.log("Cookies:", cookie);
+    if (cookie.token && cookie.token.value !== undefined) {
+      try {
+        console.info("Verifying JWT token:", cookie.token.value);
+        const verifiedToken = (await jwt.verify(cookie.token.value)) as unknown;
+        console.log("Verified token:", verifiedToken);
+        if (
+          verifiedToken &&
+          typeof verifiedToken === "object" &&
+          "id" in verifiedToken
+        ) {
+          token = verifiedToken as Token;
+          console.log("Successfully verified token ID:", token.id);
+          // Here we can update the last login time of the user
+        } else {
+          console.warn("JWT verification failed or returned an invalid token.");
+        }
+      } catch (error) {
+        console.error("Failed to verify JWT token:", error);
+      }
+    } else {
+      console.warn("No JWT token found in cookies.");
+    }
+
+    return { id: token ? token.id : null };
+  })
+  .use(auth)
+  .use(user)
+  .use(admin)
   .get("/", () => "Hello Elysia")
   .listen({ port: "9512" });
 

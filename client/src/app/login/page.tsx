@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { eden } from "@/utils/api";
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
 // import { useEffect, useState } from "react";
 // import { eden } from "@/utils/api";
@@ -58,12 +58,15 @@ export default function LoginPage() {
     // console.log(values);
     eden.auth.login
       .post(values)
-      .then((data) => {
-        console.log("Outcome: ", data);
-        setToken(
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkpvaG4gRG9lIiwiaWQiOjE1MTYyMzkwMjJ9.rSPHJtP1NBpGdqq5MUk5-Y64joqWLrBkIRV6fcbAafE"
-        );
-        router.push("/");
+      .then((response) => {
+        console.log("Outcome: ", response);
+
+        if (response.status !== 200) {
+          console.error(response.data.error);
+        } else {
+          setToken(response.data.token);
+          router.push("/");
+        }
       })
       .catch((error) => {
         console.error(error);

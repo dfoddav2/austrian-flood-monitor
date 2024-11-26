@@ -1,20 +1,30 @@
-"use client"
- 
-import * as React from "react"
-import { Moon, Sun } from "lucide-react"
-import { useTheme } from "next-themes"
- 
-import { Button } from "@/components/ui/button"
+"use client";
+
+import * as React from "react";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
- 
+} from "@/components/ui/dropdown-menu";
+
 export function ModeToggle() {
-  const { setTheme } = useTheme()
- 
+  const { setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  // After mounting, we have access to the theme
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -36,5 +46,5 @@ export function ModeToggle() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

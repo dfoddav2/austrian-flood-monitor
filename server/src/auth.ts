@@ -1,10 +1,7 @@
 import { Elysia, t } from "elysia";
 
 import { sql } from "@server/sql";
-import { panic } from "@utils/panic";
 import { AuthContextWithBody, RegisterBody, LoginBody } from "@utils/types";
-
-const JWT_SECRET = process.env.JWT_SECRET ?? panic("JWT_SECRET not set");
 
 export const auth = new Elysia({ prefix: "/auth" })
   .post(
@@ -13,17 +10,26 @@ export const auth = new Elysia({ prefix: "/auth" })
       jwt,
       set,
       body: { email, name, username, password },
+      cookie: { token },
     }: AuthContextWithBody<RegisterBody>) => {
       try {
         const user = await sql.createUser(email, name, username, password);
         set.status = 201;
-        const token = await jwt.sign({
+        const token_value = await jwt.sign({
           id: user.id,
           username: user.username,
           userRole: user.userRole,
         });
+        token.set({
+          httpOnly: false,
+          secure: true,
+          sameSite: "none",
+          path: "/", // default
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+          value: token_value,
+        });
         set.status = 200;
-        return { token };
+        return { token_value };
       } catch (error) {
         console.log("Error in register:", error);
         if (error instanceof Error) {
@@ -67,7 +73,6 @@ export const auth = new Elysia({ prefix: "/auth" })
       { token: string } | { error: string }
     > => {
       // const user = await sql.getUserByName(name);
-      console.log("Login tried with credentials: ", email, password);
       try {
         const user = await sql.checkCredentials({ email, password });
 
@@ -81,8 +86,6 @@ export const auth = new Elysia({ prefix: "/auth" })
           username: user.username,
           userRole: user.userRole,
         });
-        console.log("Setting token on the frontend:", token_value);
-        console.log("Token before setting:", token);
         token.set({
           httpOnly: false,
           secure: true,
@@ -91,7 +94,6 @@ export const auth = new Elysia({ prefix: "/auth" })
           maxAge: 60 * 60 * 24 * 7, // 7 days
           value: token_value,
         });
-        console.log("Token set on the frontend:", token);
         set.status = 200;
         return { token: token_value };
       } catch (error) {

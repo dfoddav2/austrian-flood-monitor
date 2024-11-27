@@ -28,7 +28,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
-  const setToken = useAuthStore((state) => state.setToken);
+  const initializeAuth = useAuthStore((state) => state.initializeAuth);
   const router = useRouter();
 
   const formSchema = z.object({
@@ -64,7 +64,7 @@ export default function RegisterPage() {
         if (response.status !== 200) {
           console.error(response.data.error);
         } else {
-          setToken(response.data.token);
+          initializeAuth();
           router.push("/");
         }
       })

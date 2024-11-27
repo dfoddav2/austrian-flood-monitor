@@ -6,25 +6,25 @@ export async function getAllUsers(): Promise<User[]> {
   return await prisma.user.findMany();
 }
 
-export async function getUser(
-  id?: string,
-  username?: string,
-  email?: string
+export async function getUserById(
+  id: string
+  // username?: string,
+  // email?: string
 ): Promise<User | null> {
-  const whereClause = id
-    ? { id }
-    : username
-    ? { username }
-    : email
-    ? { email }
-    : null;
+  // const whereClause = id
+  //   ? { id }
+  //   : username
+  //   ? { username }
+  //   : email
+  //   ? { email }
+  //   : null;
 
-  if (!whereClause) {
-    throw new Error("No identifier provided");
-  }
+  // if (!whereClause) {
+  //   throw new Error("No identifier provided");
+  // }
 
   const user = await prisma.user.findUnique({
-    where: whereClause,
+    where: { id },
   });
 
   if (!user) {

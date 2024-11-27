@@ -9,7 +9,6 @@ import { auth } from "@server/auth";
 import { admin } from "@server/admin";
 import { user } from "@server/user";
 import { panic } from "@utils/panic";
-import { sql } from "@server/sql";
 
 const app = new Elysia()
   .use(
@@ -24,7 +23,7 @@ const app = new Elysia()
       // methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization", "*"],
       origin: true,
-    })
+    }),
   )
   .use(
     swagger({

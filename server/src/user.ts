@@ -9,7 +9,7 @@ export const user = new Elysia({ prefix: "/user" })
     "/user-details",
     async ({ set, body: { id } }: AuthContextWithBody<{ id: string }>) => {
       try {
-        const user = await sql.getUser(id);
+        const user = await sql.getUserById(id);
         set.status = 200;
         return user;
       } catch (error) {
@@ -40,7 +40,7 @@ export const user = new Elysia({ prefix: "/user" })
   .delete(
     "/delete-account",
     async ({ set, id }: AuthContext) => {
-        console.log("Deleting user with ID:", id);
+      console.log("Deleting user with ID:", id);
       if (!id) {
         set.status = 400; // Bad Request
         return { error: "No user ID provided" };

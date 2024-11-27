@@ -6,23 +6,7 @@ export async function getAllUsers(): Promise<User[]> {
   return await prisma.user.findMany();
 }
 
-export async function getUserById(
-  id: string
-  // username?: string,
-  // email?: string
-): Promise<User | null> {
-  // const whereClause = id
-  //   ? { id }
-  //   : username
-  //   ? { username }
-  //   : email
-  //   ? { email }
-  //   : null;
-
-  // if (!whereClause) {
-  //   throw new Error("No identifier provided");
-  // }
-
+export async function getUserById(id: string): Promise<User | null> {
   const user = await prisma.user.findUnique({
     where: { id },
   });
@@ -96,6 +80,70 @@ export async function checkCredentials({
   } else {
     return user;
   }
+}
+
+export async function getAllReports() {
+  return await prisma.report.findMany();
+}
+
+export async function getReportById(reportId: string) {
+  const report = await prisma.report.findUnique({
+    where: { id: reportId },
+    include: {
+      images: true,
+    }
+  });
+  if (!report) {
+    throw new Error("Report not found");
+  } else {
+    return report;
+  }
+}
+
+export async function getReportsAssociatedWithUser(authorId: string) {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: authorId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return await prisma.report.findMany({
+    where: {
+      authorId,
+    },
+  });
+}
+
+export async function createReport(
+  authorId: string,
+  title: string,
+  description: string,
+  latitude: number,
+  longitude: number,
+  images?: { source: string; description: string }[]
+) {
+  return await prisma.report.create({
+    data: {
+      authorId,
+      title,
+      description,
+      latitude,
+      longitude,
+      images: {
+        create: images?.map((image) => ({
+          source: image.source,
+          description: image.description,
+        })),
+      },
+    },
+  });
 }
 
 export * as sql from "./sql";

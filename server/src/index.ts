@@ -8,6 +8,7 @@ import pretty from "pino-pretty";
 import { auth } from "@server/auth";
 import { admin } from "@server/admin";
 import { user } from "@server/user";
+import { reports } from "@server/reports";
 import { panic } from "@utils/panic";
 
 const app = new Elysia()
@@ -41,7 +42,7 @@ const app = new Elysia()
           { name: "auth" },
           { name: "admin" },
           { name: "user" },
-          { name: "report" },
+          { name: "reports" },
           { name: "misc" },
         ],
       },
@@ -92,6 +93,7 @@ const app = new Elysia()
   .use(auth)
   .use(user)
   .use(admin)
+  .use(reports)
   .get("/", () => "Hello Elysia")
   .listen({ port: "9512" });
 

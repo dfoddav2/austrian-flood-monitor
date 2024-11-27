@@ -17,24 +17,6 @@ export default function UserPage() {
   useEffect(() => {
     if (!user) return;
     const getUserDetails = async () => {
-      // try {
-      //   const response = await eden.user["user-details"].post({
-      //     id: user.id,
-      //     $fetch: {
-      //       mode: "cors",
-      //       credentials: "include",
-      //       method: "POST",
-      //     },
-      //   });
-
-      //   if (response.status !== 200) {
-      //     console.error(response.error.value);
-      //   } else {
-      //     setUserDetails(response.data);
-      //   }
-      // } catch (error) {
-      //   console.error(error);
-      // }
       eden.user["user-details"]
         .post({ id: user.id })
         .then((response) => {

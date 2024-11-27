@@ -5,6 +5,15 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  images: {
+    domains: [
+      "localhost",
+      "res.cloudinary.com",
+      "www.preventionweb.net",
+      "imgl.krone.at",
+      "bufferwall.com",
+    ],
+  },
 };
 
 export default nextConfig;

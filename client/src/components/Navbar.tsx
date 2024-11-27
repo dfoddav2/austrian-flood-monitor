@@ -10,10 +10,18 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { ModeToggle } from "@/components/ui/theme-toggle";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
+  const router = useRouter();
+
   const user = useAuthStore((state) => state.user);
-  const handleLogout = useAuthStore((state) => state.clearToken);
+  const clearToken = useAuthStore((state) => state.clearToken);
+
+  const handleLogout = () => {
+    clearToken();
+    router.push("/");
+  };
 
   return (
     <nav className="bg-gray-800 dark:bg-gray-900 p-4 w-full flex justify-between items-center">

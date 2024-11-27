@@ -30,7 +30,8 @@ import { useRouter } from "next/navigation";
 // import { eden } from "@/utils/api";
 
 export default function LoginPage() {
-  const setToken = useAuthStore((state) => state.setToken);
+  // const setToken = useAuthStore((state) => state.setToken);
+  const initializeAuth = useAuthStore((state) => state.initializeAuth);
   const router = useRouter();
 
   const formSchema = z.object({
@@ -54,8 +55,58 @@ export default function LoginPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     // console.log(values);
+    // try {
+    // const response = await fetch("http://localhost:9512/auth/login", {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify({
+    //     email: values.email,
+    //     password: values.password,
+    //   }),
+    //   credentials: "include", // This ensures cookies are included in the request
+    // });
+    // const response = await eden.auth.login.post({
+    //   email: values.email,
+    //   password: values.password,
+    //   $fetch: {
+    //     mode: "cors",
+    //     credentials: "include",
+    //     method: "POST",
+    //   },
+    // })
+
+    // const response = await eden.auth.register.post({
+    //   name: formName,
+    //   email: formEmail,
+    //   username: formUsername,
+    //   key: formPassword,
+    //   municipalityName: formMunicipality,
+    //   organizationName: formOrganization,
+    //   $fetch: {
+    //     mode: "cors",
+    //     credentials: "include",
+    //     method: "POST",
+    //   },
+    // });
+
+    //   const responseData = await response.json();
+    //   console.log("Login outcome: ", responseData);
+    //   if (response.status !== 200) {
+    //     console.error(responseData.error);
+    //   } else {
+    //     // Handle successful login
+    //     console.log("Token received:", responseData.token);
+    //     setToken(responseData.token); // Uncomment if you have a setToken function
+    //     router.push("/"); // Uncomment if you want to redirect after login
+    //   }
+    // } catch (error) {
+    //   console.error("Error during login:", error);
+    // }
+
     eden.auth.login
       .post(values)
       .then((response) => {
@@ -64,7 +115,7 @@ export default function LoginPage() {
         if (response.status !== 200) {
           console.error(response.data.error);
         } else {
-          setToken(response.data.token);
+          initializeAuth();
           router.push("/");
         }
       })

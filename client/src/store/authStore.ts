@@ -11,7 +11,7 @@ interface User {
 interface AuthState {
   token: string | null;
   user: User | null;
-  setToken: (token: string) => void;
+  // setToken: (token: string) => void;
   clearToken: () => void;
   initializeAuth: () => void; // Add this line
 }
@@ -19,29 +19,34 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   token: null,
   user: null,
-  setToken: (token: string) => {
-    console.log("Setting token:", token);
-    // Store the token in cookies
-    Cookies.set("token", token, {
-      expires: 7,
-      // httpOnly: true,
-      // secure: true,
-      sameSite: 'Lax'
-    });
+  // setToken: (token: string) => {
+  //   console.log("Setting token:", token);
+  //   // Store the token in cookies
+  //   Cookies.set("token", token, {
+  //     expires: 7,
+  //     // httpOnly: true,
+  //     // secure: true,
+  //     sameSite: 'Lax'
+  //   });
 
-    // Decode the token to get user info
-    console.log("Decoding user from tokend:", token);
-    const decodedUser: User = jwtDecode(token);
-    console.log("Decoded user:", decodedUser);
-    set({ token, user: decodedUser });
-  },
+  //   // Decode the token to get user info
+  //   console.log("Decoding user from tokend:", token);
+  //   const decodedUser: User = jwtDecode(token);
+  //   console.log("Decoded user:", decodedUser);
+  //   set({ token, user: decodedUser });
+  // },
   clearToken: () => {
-    // Remove the token from cookies
     Cookies.remove("token");
     set({ token: null, user: null });
   },
+  getCookie(name: string): string | undefined {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(";").shift();
+  },
   initializeAuth: () => {
     const token = Cookies.get("token");
+    console.log("Initializing auth with token:", token);
     if (token) {
       try {
         const decodedUser: User = jwtDecode(token);

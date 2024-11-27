@@ -47,6 +47,9 @@ export const auth = new Elysia({ prefix: "/auth" })
         username: t.String({ minLength: 5 }),
         password: t.String({ minLength: 8 }),
       }),
+      cookie: t.Cookie({
+        token: t.Optional(t.String()),
+      }),
       detail: {
         tags: ["auth"],
         description: "Register a new user just by giving a name",
@@ -59,6 +62,7 @@ export const auth = new Elysia({ prefix: "/auth" })
       jwt,
       set,
       body: { email, password },
+      cookie: { token },
     }: AuthContextWithBody<LoginBody>): Promise<
       { token: string } | { error: string }
     > => {
@@ -72,13 +76,24 @@ export const auth = new Elysia({ prefix: "/auth" })
           return { error: "Invalid credentials" };
         }
 
-        const token = await jwt.sign({
+        const token_value = await jwt.sign({
           id: user.id,
           username: user.username,
           userRole: user.userRole,
         });
+        console.log("Setting token on the frontend:", token_value);
+        console.log("Token before setting:", token);
+        token.set({
+          httpOnly: false,
+          secure: true,
+          sameSite: "none",
+          path: "/", // default
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+          value: token_value,
+        });
+        console.log("Token set on the frontend:", token);
         set.status = 200;
-        return { token };
+        return { token: token_value };
       } catch (error) {
         console.log("Error in login:", error);
         if (error instanceof Error) {
@@ -99,6 +114,9 @@ export const auth = new Elysia({ prefix: "/auth" })
       body: t.Object({
         email: t.String({ minLength: 8 }),
         password: t.String({ minLength: 8 }),
+      }),
+      cookie: t.Cookie({
+        token: t.Optional(t.String()),
       }),
       detail: {
         tags: ["auth"],

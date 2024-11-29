@@ -36,12 +36,7 @@ export default function UserPage() {
 
   const handleDeleteUser = () => {
     eden.user["delete-account"]
-      .delete({
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
+      .delete()
       .then((response) => {
         console.log(response);
         if (response.status !== 200) {

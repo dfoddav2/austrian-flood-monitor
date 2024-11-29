@@ -23,7 +23,10 @@ const app = new Elysia()
       credentials: true,
       // methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization", "*"],
-      origin: process.env.NODE_ENV === "production" ? "https://austrian-flood-monitor.vercel.app" : true,
+      origin:
+        process.env.NODE_ENV === "production"
+          ? "https://austrian-flood-monitor.vercel.app"
+          : true,
     })
   )
   .use(
@@ -62,7 +65,7 @@ const app = new Elysia()
       userRole: string;
       email: string;
     }
-    let token: { id: string; userRole: string; email: string } | null = null;
+    let token: { id: string; expiry: string } | null = null;
 
     console.log("Cookies:", cookie);
     if (cookie.token && cookie.token.value !== undefined) {

@@ -23,7 +23,7 @@ const app = new Elysia()
       credentials: true,
       // methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization", "*"],
-      origin: true,
+      origin: process.env.NODE_ENV === "production" ? "https://austrian-flood-monitor.vercel.app" : true,
     })
   )
   .use(

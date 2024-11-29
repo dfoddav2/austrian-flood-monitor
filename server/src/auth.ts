@@ -30,10 +30,6 @@ export const auth = new Elysia({ prefix: "/auth" })
           secure: true,
           sameSite: "none",
           path: "/", // default
-          domain:
-            nodeEnv === "production"
-              ? "austrian-flood-monitor.vercel.app"
-              : undefined,
           maxAge: expiresIn, // 7 days
           value: token_value,
         });
@@ -48,10 +44,6 @@ export const auth = new Elysia({ prefix: "/auth" })
           httpOnly: false,
           secure: true,
           sameSite: "none",
-          domain:
-            nodeEnv === "production"
-              ? "austrian-flood-monitor.vercel.app"
-              : undefined,
           path: "/", // default
           maxAge: expiresIn, // 7 days
           value: authCookie_value,
@@ -121,10 +113,6 @@ export const auth = new Elysia({ prefix: "/auth" })
           secure: true,
           sameSite: "none",
           path: "/", // default
-          domain:
-            nodeEnv === "production"
-              ? "austrian-flood-monitor.vercel.app"
-              : undefined,
           maxAge: expiresIn, // 7 days
           value: token_value,
         });
@@ -140,10 +128,6 @@ export const auth = new Elysia({ prefix: "/auth" })
           secure: true,
           sameSite: "none",
           path: "/", // default
-          domain:
-            nodeEnv === "production"
-              ? "austrian-flood-monitor.vercel.app"
-              : undefined,
           maxAge: expiresIn, // 7 days
           value: authCookie_value,
         });

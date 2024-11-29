@@ -21,8 +21,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   setCookie: (cookieName: string, cookieValue: string) => {
     Cookies.set(cookieName, cookieValue, {
       secure: true,
-      sameSite: "none",
+      sameSite: "",
       path: "/",
+      domain:
+        process.env.NODE_ENV === "production"
+          ? ".austrian-flood-monitor-server.onrender.com"
+          : "",
       expires: 7,
     });
   },

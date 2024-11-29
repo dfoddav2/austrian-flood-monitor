@@ -14,43 +14,26 @@ export const auth = new Elysia({ prefix: "/auth" })
       jwt,
       set,
       body: { email, name, username, password },
-      cookie: { token, authCookie },
     }: AuthContextWithBody<RegisterBody>) => {
       try {
         const user = await sql.createUser(email, name, username, password);
         set.status = 201;
 
         // Authentication token for the backend
-        const token_value = await jwt.sign({
+        const token = await jwt.sign({
           id: user.id,
           expiry: Math.floor(Date.now() / 1000) + expiresIn, // 7 days
         });
-        token.set({
-          httpOnly: nodeEnv === "production",
-          secure: true,
-          sameSite: "none",
-          path: "/", // default
-          maxAge: expiresIn, // 7 days
-          value: token_value,
-        });
 
         // Authentication token for the store on the frontend
-        const authCookie_value = await jwt.sign({
+        const authCookie = await jwt.sign({
           id: user.id,
           username: user.username,
           userRole: user.userRole,
         });
-        authCookie.set({
-          httpOnly: false,
-          secure: true,
-          sameSite: "none",
-          path: "/", // default
-          maxAge: expiresIn, // 7 days
-          value: authCookie_value,
-        });
 
         set.status = 200;
-        return { token_value };
+        return { token, authCookie };
       } catch (error) {
         console.log("Error in register:", error);
         if (error instanceof Error) {
@@ -74,10 +57,6 @@ export const auth = new Elysia({ prefix: "/auth" })
         username: t.String({ minLength: 5 }),
         password: t.String({ minLength: 8 }),
       }),
-      cookie: t.Cookie({
-        token: t.Optional(t.String()),
-        authCookie: t.Optional(t.String()),
-      }),
       detail: {
         tags: ["auth"],
         description: "Register a new user by giving it's details",
@@ -90,11 +69,9 @@ export const auth = new Elysia({ prefix: "/auth" })
       jwt,
       set,
       body: { email, password },
-      cookie: { token, authCookie },
     }: AuthContextWithBody<LoginBody>): Promise<
       { token: string } | { error: string }
     > => {
-      // const user = await sql.getUserByName(name);
       try {
         const user = await sql.checkCredentials({ email, password });
 
@@ -104,36 +81,20 @@ export const auth = new Elysia({ prefix: "/auth" })
         }
 
         // Authentication token for the backend
-        const token_value = await jwt.sign({
+        const token = await jwt.sign({
           id: user.id,
           expiry: Math.floor(Date.now() / 1000) + expiresIn, // 7 days
         });
-        token.set({
-          httpOnly: nodeEnv === "production",
-          secure: true,
-          sameSite: "none",
-          path: "/", // default
-          maxAge: expiresIn, // 7 days
-          value: token_value,
-        });
 
         // Authentication token for the store on the frontend
-        const authCookie_value = await jwt.sign({
+        const authCookie = await jwt.sign({
           id: user.id,
           username: user.username,
           userRole: user.userRole,
         });
-        authCookie.set({
-          httpOnly: false,
-          secure: true,
-          sameSite: "none",
-          path: "/", // default
-          maxAge: expiresIn, // 7 days
-          value: authCookie_value,
-        });
 
         set.status = 200;
-        return { token: token_value };
+        return { token, authCookie };
       } catch (error) {
         console.log("Error in login:", error);
         if (error instanceof Error) {
@@ -154,10 +115,6 @@ export const auth = new Elysia({ prefix: "/auth" })
       body: t.Object({
         email: t.String({ minLength: 8 }),
         password: t.String({ minLength: 8 }),
-      }),
-      cookie: t.Cookie({
-        token: t.Optional(t.String()),
-        authCookie: t.Optional(t.String()),
       }),
       detail: {
         tags: ["auth"],

@@ -18,6 +18,14 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   token: null,
   user: null,
+  setCookie: (cookieName: string, cookieValue: string) => {
+    Cookies.set(cookieName, cookieValue, {
+      secure: true,
+      sameSite: "none",
+      path: "/",
+      expires: 7,
+    });
+  },
   clearAuth: () => {
     Cookies.remove("token");
     Cookies.remove("authCookie");

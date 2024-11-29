@@ -30,7 +30,7 @@ import { useRouter } from "next/navigation";
 // import { eden } from "@/utils/api";
 
 export default function LoginPage() {
-  // const setToken = useAuthStore((state) => state.setToken);
+  const setCookie = useAuthStore((state) => state.setCookie);
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
   const router = useRouter();
 
@@ -64,6 +64,8 @@ export default function LoginPage() {
         if (response.status !== 200) {
           console.error(response.error.value.error);
         } else {
+          setCookie("authCookie", response.data.authCookie);
+          setCookie("token", response.data.token);
           initializeAuth();
           router.push("/");
         }

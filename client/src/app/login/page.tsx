@@ -62,7 +62,7 @@ export default function LoginPage() {
         console.log("Outcome: ", response);
 
         if (response.status !== 200) {
-          console.error(response.data.error);
+          console.error(response.error.value.error);
         } else {
           initializeAuth();
           router.push("/");

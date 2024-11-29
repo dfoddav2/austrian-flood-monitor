@@ -76,6 +76,7 @@ export const auth = new Elysia({ prefix: "/auth" })
       }),
       cookie: t.Cookie({
         token: t.Optional(t.String()),
+        authCookie: t.Optional(t.String()),
       }),
       detail: {
         tags: ["auth"],
@@ -156,6 +157,7 @@ export const auth = new Elysia({ prefix: "/auth" })
       }),
       cookie: t.Cookie({
         token: t.Optional(t.String()),
+        authCookie: t.Optional(t.String()),
       }),
       detail: {
         tags: ["auth"],

@@ -24,7 +24,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       sameSite: "",
       path: "/",
       domain:
-        process.env.NODE_ENV === "production"
+        process.env.NODE_ENV === "production" && cookieName === "token"
           ? ".austrian-flood-monitor-server.onrender.com"
           : "",
       expires: 7,

@@ -24,7 +24,7 @@ const app = new Elysia()
       // methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization", "*"],
       origin: true,
-    }),
+    })
   )
   .use(
     swagger({
@@ -75,9 +75,12 @@ const app = new Elysia()
           typeof verifiedToken === "object" &&
           "id" in verifiedToken
         ) {
+          // TODO: Handle expiry and refreshing of tokens
+          if (verifiedToken.expiry && verifiedToken.expiry < Date.now()) {
+            console.warn("JWT token has expired.");
+          }
           token = verifiedToken as Token;
           console.log("Successfully verified token ID:", token.id);
-          // Here we can update the last login time of the user
         } else {
           console.warn("JWT verification failed or returned an invalid token.");
         }

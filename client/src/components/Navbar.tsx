@@ -16,10 +16,10 @@ export default function Navbar() {
   const router = useRouter();
 
   const user = useAuthStore((state) => state.user);
-  const clearToken = useAuthStore((state) => state.clearToken);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
 
   const handleLogout = () => {
-    clearToken();
+    clearAuth();
     router.push("/");
   };
 

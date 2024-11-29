@@ -11,7 +11,7 @@ export default function UserPage() {
   const router = useRouter();
 
   const user = useAuthStore((state) => state.user);
-  const clearToken = useAuthStore((state) => state.clearToken);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
   const [userDetails, setUserDetails] = useState(null);
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export default function UserPage() {
         if (response.status !== 200) {
           console.error(response.error.value);
         } else {
-          clearToken();
+          clearAuth();
           console.log("User deleted");
           router.push("/");
         }

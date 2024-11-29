@@ -21,7 +21,7 @@ export const auth = new Elysia({ prefix: "/auth" })
           userRole: user.userRole,
         });
         token.set({
-          httpOnly: true,
+          httpOnly: process.env.NODE_ENV === "production",
           secure: true,
           sameSite: "none",
           path: "/", // default
@@ -87,7 +87,7 @@ export const auth = new Elysia({ prefix: "/auth" })
           userRole: user.userRole,
         });
         token.set({
-          httpOnly: true,
+          httpOnly: process.env.NODE_ENV === "production",
           secure: true,
           sameSite: "none",
           path: "/", // default

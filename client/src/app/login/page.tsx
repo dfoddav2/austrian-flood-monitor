@@ -65,7 +65,7 @@ export default function LoginPage() {
           console.error(response.error.value.error);
         } else {
           setCookie("authCookie", response.data.authCookie);
-          setCookie("token", response.data.token);
+          // setCookie("token", response.data.token);
           initializeAuth();
           router.push("/");
         }

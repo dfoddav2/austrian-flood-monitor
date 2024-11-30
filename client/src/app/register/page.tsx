@@ -66,7 +66,7 @@ export default function RegisterPage() {
           console.error(response.data.error);
         } else {
           setCookie("authCookie", response.data.authCookie);
-          setCookie("token", response.data.token);
+          // setCookie("token", response.data.token);
           initializeAuth();
           router.push("/");
         }

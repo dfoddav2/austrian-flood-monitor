@@ -14,7 +14,7 @@ export const auth = new Elysia({ prefix: "/auth" })
       jwt,
       set,
       body: { email, name, username, password },
-      cookie: { token, authCookie },
+      cookie: { token },
     }: AuthContextWithBody<RegisterBody>) => {
       try {
         const user = await sql.createUser(email, name, username, password);
@@ -50,7 +50,7 @@ export const auth = new Elysia({ prefix: "/auth" })
         });
 
         set.status = 200;
-        return { token_value };
+        return { authCookie: authCookie_value };
       } catch (error) {
         console.log("Error in register:", error);
         if (error instanceof Error) {
@@ -124,7 +124,7 @@ export const auth = new Elysia({ prefix: "/auth" })
         });
 
         set.status = 200;
-        return { token: token_value };
+        return { authCookie: authCookie_value };
       } catch (error) {
         console.log("Error in login:", error);
         if (error instanceof Error) {

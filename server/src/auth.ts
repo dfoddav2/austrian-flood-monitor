@@ -15,7 +15,9 @@ export const auth = new Elysia({ prefix: "/auth" })
       set,
       body: { email, name, username, password },
       cookie: { token },
-    }: AuthContextWithBody<RegisterBody>) => {
+    }: AuthContextWithBody<RegisterBody>): Promise<
+      { authCookie: string } | { error: string }
+    > => {
       try {
         const user = await sql.createUser(email, name, username, password);
         set.status = 201;
@@ -39,14 +41,6 @@ export const auth = new Elysia({ prefix: "/auth" })
           id: user.id,
           username: user.username,
           userRole: user.userRole,
-        });
-        authCookie.set({
-          httpOnly: false,
-          secure: true,
-          sameSite: "none",
-          path: "/", // default
-          maxAge: expiresIn, // 7 days
-          value: authCookie_value,
         });
 
         set.status = 200;
@@ -91,7 +85,7 @@ export const auth = new Elysia({ prefix: "/auth" })
       body: { email, password },
       cookie: { token },
     }: AuthContextWithBody<LoginBody>): Promise<
-      { token: string } | { error: string }
+      { authCookie: string } | { error: string }
     > => {
       // const user = await sql.getUserByName(name);
       try {

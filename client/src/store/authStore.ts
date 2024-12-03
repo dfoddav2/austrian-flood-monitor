@@ -11,6 +11,7 @@ interface User {
 interface AuthState {
   token: string | null;
   user: User | null;
+  authCookie: string | null;
   clearAuth: () => void;
   initializeAuth: () => void;
 }
@@ -18,6 +19,7 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   token: null,
   user: null,
+  authCookie: null,
   setCookie: (cookieName: string, cookieValue: string) => {
     Cookies.set(cookieName, cookieValue, {
       secure: true,

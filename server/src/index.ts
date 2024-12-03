@@ -59,10 +59,11 @@ const app = new Elysia()
 
     interface Token {
       id: string;
+      expiry: number;
       userRole: string;
       email: string;
     }
-    let token: { id: string; expiry: string } | null = null;
+    let token: Token | null = null;
 
     console.log("Cookies:", cookie);
     if (cookie.token && cookie.token.value !== undefined) {
@@ -76,7 +77,7 @@ const app = new Elysia()
           "id" in verifiedToken
         ) {
           // TODO: Handle expiry and refreshing of tokens
-          if (verifiedToken.expiry && verifiedToken.expiry < Date.now()) {
+          if ((verifiedToken as Token).expiry < Date.now()) {
             console.warn("JWT token has expired.");
           }
           token = verifiedToken as Token;

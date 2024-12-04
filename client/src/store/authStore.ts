@@ -14,6 +14,7 @@ interface AuthState {
   authCookie: string | null;
   clearAuth: () => void;
   initializeAuth: () => void;
+  setCookie: (cookieName: string, cookieValue: string) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({

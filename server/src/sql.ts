@@ -62,6 +62,32 @@ export async function deleteUser(id: string): Promise<void> {
   });
 }
 
+export async function updateUser(
+  id: string,
+  updates: { name?: string; username?: string; email?: string } 
+): Promise<void> {
+  const user = await prisma.user.findUnique({
+    where: { id},
+    select: { id: true, name: true, username: true, email: true },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const updateData: Partial<{ name: string; username: string; email: string }> = {};
+
+  if (updates.name) updateData.name = updates.name;
+  if (updates.username) updateData.username = updates.username;
+  if (updates.email) updateData.email = updates.email;
+
+  await prisma.user.update({
+    where: { id },
+    data: updateData,
+    },
+  );
+} 
+
 export async function checkCredentials({
   email,
   password,

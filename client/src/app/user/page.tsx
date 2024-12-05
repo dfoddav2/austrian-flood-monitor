@@ -90,7 +90,6 @@ export default function UserPage() {
           clearAuth();
           console.log("User deleted");
           router.push("/");
-          // TODO: Open toaster here
           toast({
             title: "Success",
             description: "User deleted successfully",

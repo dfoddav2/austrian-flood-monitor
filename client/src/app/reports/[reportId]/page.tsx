@@ -4,6 +4,7 @@ import { eden } from "@/utils/api";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 import {
   Card,
@@ -29,7 +30,7 @@ interface Report {
   description: string;
   latitude: number;
   longitude: number;
-  images: { id: string; description: string }[];
+  images: { id: string; source: string; description: string }[];
 }
 
 const ReportPage = () => {
@@ -86,8 +87,8 @@ const ReportPage = () => {
                   {report.images.map((image) => (
                     <CarouselItem key={image.id}>
                       <CldImage
-                        width="500"
-                        height="500"
+                        width={800}
+                        height={500}
                         src={image.source}
                         // sizes="100vw"
                         alt={image.description}
@@ -123,16 +124,28 @@ const ReportPage = () => {
           </CardFooter>
         </Card>
       ) : (
-        // <>
-        //   <p>Report ID: {report.id}</p>
-        //   <p>Title: {report.title}</p>
-        //   <p>Description: {report.description}</p>
-        //   <p>Latitude: {report.latitude}</p>
-        //   <p>Longitude: {report.longitude}</p>
-        // </>
-        <p>Report not found.</p>
+        <Card>
+          <CardHeader>
+            <CardTitle>Report could not found</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CardDescription>
+              <p>The report you are looking for does not exist</p>
+              <Link
+                href="/reports"
+                className="text-blue-500 hover:text-blue-700 hover:underline text-sm"
+              >
+                Browse other reports
+              </Link>
+            </CardDescription>
+          </CardContent>
+          <CardFooter>
+            <CardDescription>
+              <p>Report ID: {reportId}</p>
+            </CardDescription>
+          </CardFooter>
+        </Card>
       )}
-      {/* Render other report details as needed */}
     </div>
   );
 };

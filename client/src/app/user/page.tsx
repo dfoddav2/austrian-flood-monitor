@@ -176,7 +176,6 @@ export default function UserPage() {
                 <Button
                   variant="outline"
                   className="mr-3"
-                  onClick={() => setError("No edit page yet")}
                 >
                   <Link href="/user/edit" passHref>
                     Edit User

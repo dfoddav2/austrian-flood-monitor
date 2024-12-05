@@ -21,20 +21,33 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Separator } from "@/components/ui/separator";
+import { CldImage } from "next-cloudinary";
+
+interface Report {
+  id: string;
+  title: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+  images: { id: string; description: string }[];
+}
 
 const ReportPage = () => {
-  const { reportId } = useParams();
+  const { reportId } = useParams<{ reportId: string | string[] }>();
 
-  const [report, setReport] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [report, setReport] = useState<Report | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (!reportId) {
       return;
     }
+
+    const reportIdStr = Array.isArray(reportId) ? reportId[0] : reportId;
+
     const fetchReport = async () => {
       eden.reports["report-by-id"]
-        .post({ reportId })
+        .post({ reportId: reportIdStr })
         .then((response) => {
           if (response.status !== 200) {
             console.error(response.error.value);
@@ -72,12 +85,12 @@ const ReportPage = () => {
                 <CarouselContent>
                   {report.images.map((image) => (
                     <CarouselItem key={image.id}>
-                      <Image
+                      <CldImage
+                        width="500"
+                        height="500"
                         src={image.source}
+                        // sizes="100vw"
                         alt={image.description}
-                        width={800}
-                        height={500}
-                        layout="responsive"
                         className="rounded-lg"
                       />
                     </CarouselItem>

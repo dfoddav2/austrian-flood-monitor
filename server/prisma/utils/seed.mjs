@@ -63,6 +63,15 @@ async function main() {
           longitude: 15.4395,
           authorId: "responder_id_1",
         },
+        {
+          id: "report_id_4",
+          title: "River Krems Flooding",
+          description:
+            "In the previous 24 hours, the river has risen by 2 meters. The water level is still rising. Residents are advised to evacuate.",
+          latitude: 47.0707,
+          longitude: 15.4395,
+          authorId: "admin_id_1",
+        },
       ],
     });
 
@@ -75,21 +84,29 @@ async function main() {
           id: "image_id_1",
           reportId: "report_id_1",
           source:
-            "https://www.preventionweb.net/sites/default/files/styles/landscape_16_9/public/2024-09/Shutterstock_2519738309.jpg?h=2cf907fb&itok=viaG7CyA",
+            "https://res.cloudinary.com/imc-austrian-flood-monitor/image/upload/q_auto/f_auto/v1733392478/ywlhvyxiejmu4djfkcgz.webp",
           description: "Flooded street in Vienna",
         },
         {
           id: "image_id_2",
           reportId: "report_id_1",
-          source: "https://imgl.krone.at/scaled/3526542/v216809/full.jpg",
+          source:
+            "https://res.cloudinary.com/imc-austrian-flood-monitor/image/upload/q_auto/f_auto/v1733392478/oaf5y2e0mcvcvldg95g9.avif",
           description: "Flooded street in Vienna 2",
         },
         {
           id: "image_id_3",
           reportId: "report_id_2",
           source:
-            "https://imgl.krone.at/scaled/3410762/vaea911/full.jpg?imop=FeatureCrop,width=630,height=356",
+            "https://res.cloudinary.com/imc-austrian-flood-monitor/image/upload/q_auto/f_auto/v1733392478/b7hfhkj4mwz6jdihfxvw.jpg",
           description: "Waterlogged area in Graz",
+        },
+        {
+          id: "image_id_4",
+          reportId: "report_id_4",
+          source:
+            "https://res.cloudinary.com/imc-austrian-flood-monitor/image/upload/q_auto/f_auto/v1733387374/dnnulqdjunu875wczhlm.jpg",
+          description: "River Krems flooding",
         },
       ],
     });

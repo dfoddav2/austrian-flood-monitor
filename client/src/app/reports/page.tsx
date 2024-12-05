@@ -14,9 +14,16 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
+interface Report {
+  id: string;
+  title: string;
+  description: string;
+  createdAt: string;
+}
+
 export default function ReportsPage() {
-  const [reports, setReports] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [reports, setReports] = useState<Report[] | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -39,7 +46,7 @@ export default function ReportsPage() {
         <p>Loading...</p>
       ) : reports ? (
         <div>
-          {reports.map((report) => (
+          {reports.map((report: Report) => (
             <Card key={report.id} className="mt-5">
               <CardHeader>
                 <CardTitle>{report.title}</CardTitle>

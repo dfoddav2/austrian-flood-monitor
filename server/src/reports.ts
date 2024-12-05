@@ -2,6 +2,8 @@ import { Elysia, t } from "elysia";
 
 import { sql } from "@server/sql";
 import { expect } from "bun:test";
+import { AuthContextWithBody } from "@utils/types";
+import { auth } from "./auth";
 // import { AuthContextWithBody, RegisterBody, LoginBody } from "@utils/types";
 
 export const reports = new Elysia({ prefix: "/reports" })
@@ -92,22 +94,34 @@ export const reports = new Elysia({ prefix: "/reports" })
     "/create-report",
     async ({
       set,
-      body: { authorId, title, description, latitude, longitude, images },
-    }) => {
+      id,
+      body: { title, description, latitude, longitude, images },
+    }: AuthContextWithBody<{
+      title: string;
+      description: string;
+      latitude: number;
+      longitude: number;
+      images: { source: string; description: string }[];
+    }>) => {
+      if (!id) {
+        set.status = 401; // Unauthorized
+        return { error: "Not authorized" };
+      }
+      console.log("Creating report for user with ID:", id);
       const report = await sql.createReport(
-        authorId,
+        id,
         title,
         description,
         latitude,
         longitude,
         images
       );
+      console.info("Report created:", report);
       set.status = 201;
       return report;
     },
     {
       body: t.Object({
-        authorId: t.String(),
         title: t.String(),
         description: t.String(),
         latitude: t.Number(),

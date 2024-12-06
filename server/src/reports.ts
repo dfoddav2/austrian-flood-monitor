@@ -1,17 +1,20 @@
 import { Elysia, t } from "elysia";
 
 import { sql } from "@server/sql";
-import { expect } from "bun:test";
 import { AuthContextWithBody } from "@utils/types";
-import { auth } from "./auth";
 // import { AuthContextWithBody, RegisterBody, LoginBody } from "@utils/types";
 
 export const reports = new Elysia({ prefix: "/reports" })
-  .get(
-    "/all-reports",
-    async ({ set }) => {
+  .post(
+    "/get-reports",
+    async ({ set, body: { page = 1, pageSize = 5, sortBy, sortOrder } }) => {
       try {
-        const reports = await sql.getAllReports();
+        const reports = await sql.getReports({
+          page: Number(page),
+          pageSize: Number(pageSize),
+          sortBy,
+          sortOrder,
+        });
         set.status = 200;
         return reports;
       } catch (error) {
@@ -20,9 +23,15 @@ export const reports = new Elysia({ prefix: "/reports" })
       }
     },
     {
+      body: t.Object({
+        page: t.Optional(t.Number()),
+        pageSize: t.Optional(t.Number()),
+        sortBy: t.Optional(t.String()),
+        sortOrder: t.Optional(t.String()),
+      }),
       detail: {
         tags: ["reports"],
-        description: "Get all reports",
+        description: "Get all reports, paginated, sorted",
       },
     }
   )

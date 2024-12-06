@@ -86,6 +86,57 @@ export async function getAllReports() {
   return await prisma.report.findMany();
 }
 
+// In sql.ts
+export async function getReports({
+  page,
+  pageSize,
+  sortBy,
+  sortOrder,
+}: {
+  page: number;
+  pageSize: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}) {
+  const skip = (page - 1) * pageSize;
+  const take = pageSize;
+
+  let orderBy: any = {};
+
+  if (sortBy === "createdAt") {
+    orderBy = { createdAt: sortOrder || "desc" };
+  } else if (sortBy === "score") {
+    // For sorting by score, we need to calculate 'upvotes - downvotes'
+    orderBy = [
+      {
+        upvotes: sortOrder || "desc",
+      },
+      {
+        downvotes: sortOrder === "asc" ? "desc" : "asc",
+      },
+    ];
+  } else {
+    // Default sorting
+    orderBy = { createdAt: "desc" };
+  }
+
+  const reports = await prisma.report.findMany({
+    skip,
+    take,
+    orderBy,
+    include: {
+      images: true,
+    },
+  });
+
+  const totalReports = await prisma.report.count();
+
+  return {
+    reports,
+    totalReports,
+  };
+}
+
 export async function getReportById(
   reportId: string,
   userId: string | undefined | null

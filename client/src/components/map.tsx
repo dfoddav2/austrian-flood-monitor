@@ -4,8 +4,6 @@ import React, {
   useRef,
   useEffect,
   useState,
-  use,
-  useInsertionEffect,
 } from "react";
 import { useTheme } from "next-themes";
 import "leaflet/dist/leaflet.css";
@@ -90,8 +88,8 @@ const Map: React.FC<MapProps> = ({ latitude, longitude }) => {
     if (latitude && longitude) {
       markerRef.current = L.marker([initialLat, initialLng])
         .addTo(map.current)
-        .bindPopup("You are here")
-        .openPopup();
+        // .bindPopup("You are here")
+        // .openPopup();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mounted, latitude, longitude]);
@@ -107,14 +105,14 @@ const Map: React.FC<MapProps> = ({ latitude, longitude }) => {
       if (markerRef.current) {
         markerRef.current
           .setLatLng(newLatLng)
-          .bindPopup("You are here")
-          .openPopup();
+          // .bindPopup("You are here")
+          // .openPopup();
       } else {
         // If marker doesn't exist, create it
         markerRef.current = L.marker(newLatLng)
           .addTo(map.current)
-          .bindPopup("You are here")
-          .openPopup();
+          // .bindPopup("You are here")
+          // .openPopup();
       }
     }
   }, [latitude, longitude, zoom]);

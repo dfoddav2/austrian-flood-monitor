@@ -86,17 +86,54 @@ export async function getAllReports() {
   return await prisma.report.findMany();
 }
 
-export async function getReportById(reportId: string) {
-  const report = await prisma.report.findUnique({
-    where: { id: reportId },
-    include: {
-      images: true,
+export async function getReportById(
+  reportId: string,
+  userId: string | undefined | null
+) {
+  // If the user is not logged in, we don't need to check if they have upvoted or downvoted the report
+  if (!userId) {
+    const report = await prisma.report.findUnique({
+      where: { id: reportId },
+      include: {
+        images: true,
+      },
+    });
+    if (!report) {
+      throw new Error("Report not found");
+    } else {
+      return report;
     }
-  });
-  if (!report) {
-    throw new Error("Report not found");
+    // If the user is logged in, we need to check if they have upvoted or downvoted the report
   } else {
-    return report;
+    const report = await prisma.report.findUnique({
+      where: { id: reportId },
+      include: {
+        images: true,
+        upvotedBy: {
+          where: { id: userId },
+          select: { id: true },
+        },
+        downvotedBy: {
+          where: { id: userId },
+          select: { id: true },
+        },
+      },
+    });
+    if (!report) {
+      throw new Error("Report not found");
+    } else {
+      const upvotedByUser = report.upvotedBy.length > 0;
+      const downvotedByUser = report.downvotedBy.length > 0;
+
+      // Remove the 'upvotedBy' and 'downvotedBy' arrays from the report object
+      const { upvotedBy, downvotedBy, ...reportData } = report;
+
+      return {
+        ...reportData,
+        upvotedByUser,
+        downvotedByUser,
+      };
+    }
   }
 }
 
@@ -141,6 +178,168 @@ export async function createReport(
           source: image.source,
           description: image.description,
         })),
+      },
+    },
+  });
+}
+
+export async function deleteReport(authorId: string, reportId: string) {
+  const report = await prisma.report.findUnique({
+    where: {
+      id: reportId,
+    },
+  });
+  if (!report) {
+    throw new Error("Report not found");
+  }
+  if (report.authorId !== authorId) {
+    throw new Error("You are not the author of this report");
+  }
+
+  await prisma.report.delete({
+    where: {
+      id: reportId,
+    },
+  });
+}
+
+export async function updateReport(
+  authorId: string,
+  reportId: string,
+  title: string,
+  description: string,
+  latitude: number,
+  longitude: number,
+  images?: { source: string; description: string }[]
+) {
+  const report = await prisma.report.findUnique({
+    where: {
+      id: reportId,
+    },
+  });
+  if (!report) {
+    throw new Error("Report not found");
+  }
+  if (report.authorId !== authorId) {
+    throw new Error("You are not the author of this report");
+  }
+
+  return await prisma.report.update({
+    where: {
+      id: reportId,
+    },
+    data: {
+      title,
+      description,
+      latitude,
+      longitude,
+      images: {
+        create: images?.map((image) => ({
+          source: image.source,
+          description: image.description,
+        })),
+      },
+    },
+  });
+}
+
+export async function upvoteReport(userId: string, reportId: string) {
+  const report = await prisma.report.findUnique({
+    where: {
+      id: reportId,
+    },
+    include: {
+      upvotedBy: true,
+      downvotedBy: true,
+    },
+  });
+  if (!report) {
+    throw new Error("Report not found");
+  }
+  if (report.authorId === userId) {
+    throw new Error("You cannot upvote your own report");
+  }
+  if (report.upvotedBy.some((user) => user.id === userId)) {
+    throw new Error("You have already upvoted this report");
+  }
+
+  if (report.downvotedBy.some((user) => user.id === userId)) {
+    await prisma.report.update({
+      where: {
+        id: reportId,
+      },
+      data: {
+        downvotedBy: {
+          disconnect: { id: userId },
+        },
+        downvotes: {
+          decrement: 1,
+        },
+      },
+    });
+  }
+
+  return await prisma.report.update({
+    where: {
+      id: reportId,
+    },
+    data: {
+      upvotedBy: {
+        connect: { id: userId },
+      },
+      upvotes: {
+        increment: 1,
+      },
+    },
+  });
+}
+
+export async function downvoteReport(userId: string, reportId: string) {
+  const report = await prisma.report.findUnique({
+    where: {
+      id: reportId,
+    },
+    include: {
+      upvotedBy: true,
+      downvotedBy: true,
+    },
+  });
+  if (!report) {
+    throw new Error("Report not found");
+  }
+  if (report.authorId === userId) {
+    throw new Error("You cannot upvote your own report");
+  }
+  if (report.downvotedBy.some((user) => user.id === userId)) {
+    throw new Error("You have already downvoted this report");
+  }
+
+  if (report.upvotedBy.some((user) => user.id === userId)) {
+    await prisma.report.update({
+      where: {
+        id: reportId,
+      },
+      data: {
+        upvotedBy: {
+          disconnect: { id: userId },
+        },
+        upvotes: {
+          decrement: 1,
+        },
+      },
+    });
+  }
+
+  return await prisma.report.update({
+    where: {
+      id: reportId,
+    },
+    data: {
+      downvotedBy: {
+        connect: { id: userId },
+      },
+      downvotes: {
+        increment: 1,
       },
     },
   });

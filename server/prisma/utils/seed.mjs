@@ -46,6 +46,7 @@ async function main() {
           latitude: 48.2082,
           longitude: 16.3738,
           authorId: "user_id_1",
+          upvotes: 1,
         },
         {
           id: "report_id_2",
@@ -76,6 +77,18 @@ async function main() {
     });
 
     console.log("Reports seeded successfully 🌱");
+
+    // Connect user upvotes
+    await prisma.report.update({
+      where: { id: "report_id_1" },
+      data: {
+        upvotedBy: {
+          connect: { id: "responder_id_1" },
+        },
+      },
+    });
+
+    console.log("User upvotes connected successfully 🌱");
 
     // Create images
     const images = await prisma.image.createMany({

@@ -7,13 +7,29 @@ import { AuthContextWithBody } from "@utils/types";
 export const reports = new Elysia({ prefix: "/reports" })
   .post(
     "/get-reports",
-    async ({ set, body: { page = 1, pageSize = 5, sortBy, sortOrder } }) => {
+    async ({
+      set,
+      body: {
+        page = 1,
+        pageSize = 5,
+        sortBy,
+        sortOrder,
+        userLatitude,
+        userLongitude,
+      },
+    }) => {
       try {
+        // Validate and cast sortOrder
+        const validSortOrder: "asc" | "desc" | undefined =
+          sortOrder === "asc" || sortOrder === "desc" ? sortOrder : undefined;
+
         const reports = await sql.getReports({
           page: Number(page),
           pageSize: Number(pageSize),
           sortBy,
-          sortOrder,
+          sortOrder: validSortOrder,
+          userLatitude: userLatitude ? Number(userLatitude) : undefined,
+          userLongitude: userLongitude ? Number(userLongitude) : undefined,
         });
         set.status = 200;
         return reports;
@@ -28,6 +44,8 @@ export const reports = new Elysia({ prefix: "/reports" })
         pageSize: t.Optional(t.Number()),
         sortBy: t.Optional(t.String()),
         sortOrder: t.Optional(t.String()),
+        userLatitude: t.Optional(t.Number()),
+        userLongitude: t.Optional(t.Number()),
       }),
       detail: {
         tags: ["reports"],

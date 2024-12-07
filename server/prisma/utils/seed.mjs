@@ -69,8 +69,8 @@ async function main() {
           title: "River Krems Flooding",
           description:
             "In the previous 24 hours, the river has risen by 2 meters. The water level is still rising. Residents are advised to evacuate.",
-          latitude: 47.0707,
-          longitude: 15.4395,
+          latitude: 48.410497,
+          longitude: 15.616334,
           authorId: "admin_id_1",
         },
       ],

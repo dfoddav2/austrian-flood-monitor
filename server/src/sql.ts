@@ -1,4 +1,4 @@
-import { User, UserRole } from "@prisma/client";
+import { Prisma, User, UserRole } from "@prisma/client";
 import { prisma } from "@server/prisma";
 
 // TODO: Change this so it only fetches the necessary fields
@@ -92,18 +92,56 @@ export async function getReports({
   pageSize,
   sortBy,
   sortOrder,
+  userLatitude,
+  userLongitude,
 }: {
   page: number;
   pageSize: number;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
+  userLatitude?: number;
+  userLongitude?: number;
 }) {
   const skip = (page - 1) * pageSize;
   const take = pageSize;
 
   let orderBy: any = {};
 
-  if (sortBy === "createdAt") {
+  if (
+    sortBy === "distance" &&
+    userLatitude !== undefined &&
+    userLongitude !== undefined
+  ) {
+    console.log(
+      "Sorting by distance to user location",
+      userLatitude,
+      userLongitude
+    );
+    const validSortOrder = sortOrder === "desc" ? "DESC" : "ASC";
+
+    // Calculate distance using the Haversine formula
+    const reports = await prisma.$queryRaw<Report[]>`
+    SELECT *, (
+      6371 * acos(
+        cos(radians(${userLatitude}))
+        * cos(radians("latitude"))
+        * cos(radians("longitude") - radians(${userLongitude}))
+        + sin(radians(${userLatitude})) * sin(radians("latitude"))
+      )
+    ) AS "distance"
+    FROM "Report"
+    ORDER BY "distance" ${Prisma.raw(validSortOrder)}
+    OFFSET ${skip}
+    LIMIT ${take};
+  `;
+
+    const totalReports = await prisma.report.count();
+
+    return {
+      reports,
+      totalReports,
+    };
+  } else if (sortBy === "createdAt") {
     orderBy = { createdAt: sortOrder || "desc" };
   } else if (sortBy === "score") {
     // For sorting by score, we need to calculate 'upvotes - downvotes'

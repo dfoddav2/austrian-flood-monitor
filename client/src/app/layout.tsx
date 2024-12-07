@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/toaster";
 import AuthInitializer from "@/components/AuthInitializer";
 import Navbar from "@/components/Navbar";
 
@@ -44,6 +45,7 @@ export default function RootLayout({
           <main className="flex flex-col items-center justify-center flex-grow p-4">
             {children}
           </main>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

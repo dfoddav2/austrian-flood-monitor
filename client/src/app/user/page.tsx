@@ -40,6 +40,7 @@ export default function UserPage() {
   const [userDetails, setUserDetails] = useState<{
     name: string;
     email: string;
+    verified: boolean;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loadingDelete, setLoadingDelete] = useState<boolean>(false);
@@ -161,13 +162,15 @@ export default function UserPage() {
                   <h1>User Details</h1>
                   <p>Name: {userDetails.name}</p>
                   <p>Email: {userDetails.email}</p>
-                  <p>Upvotes: TODO</p>
+                  <p>Verified: {userDetails.verified ? "True" : "False"}</p>
+                  <p>Upvotes: TODO</p> {/* TODO: */}
                   {/* Display other user details as needed */}
                 </div>
               </CardContent>
               <CardContent>
                 <div>
                   <h1>Your reports:</h1>
+                  {/* TODO: */}
                   <p>LINK TO REPORTS OF THE USER MAYBE EVEN WITH A THUMBNAIL</p>
                 </div>
               </CardContent>
@@ -182,7 +185,7 @@ export default function UserPage() {
                   </Link>
                 </Button>
                 <AlertDialog>
-                  <AlertDialogTrigger>
+                  <AlertDialogTrigger asChild>
                     <Button variant="destructive">Delete User</Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>

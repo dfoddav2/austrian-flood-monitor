@@ -5,7 +5,9 @@ import { jwtDecode } from "jwt-decode";
 interface User {
   id: string;
   username: string;
-  email: string;
+  // email: string;
+  verified: boolean;
+  userRole: string;
 }
 
 interface AuthState {

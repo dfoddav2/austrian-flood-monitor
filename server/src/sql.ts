@@ -18,6 +18,18 @@ export async function getUserById(id: string): Promise<User | null> {
   return user;
 }
 
+export async function getUserByEmail(email: string): Promise<User | null> {
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return user;
+}
+
 export async function createUser(
   email: string,
   name: string,
@@ -41,6 +53,41 @@ export async function createUser(
       username,
       password,
       userRole,
+    },
+  });
+}
+
+export async function verifyEmail(
+  email: string,
+  expiresAt: string
+): Promise<void> {
+  // Check if the verification token has expired
+  if (new Date(expiresAt) < new Date()) {
+    throw new Error("Verification token has expired");
+  }
+  // Check that the user exists and has not been verified yet
+  const user = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+    select: {
+      email: true,
+      verified: true,
+    },
+  });
+  if (!user) {
+    throw new Error("User not found");
+  }
+  if (user.verified) {
+    throw new Error("User has already been verified");
+  }
+  // If no problems, update the user's 'verified' field to 'true'
+  await prisma.user.update({
+    where: {
+      email,
+    },
+    data: {
+      verified: true,
     },
   });
 }

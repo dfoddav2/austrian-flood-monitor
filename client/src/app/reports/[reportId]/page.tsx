@@ -248,7 +248,7 @@ const ReportPage = () => {
                       <Button>Edit report</Button>
                     </Link>
                     <AlertDialog>
-                      <AlertDialogTrigger>
+                      <AlertDialogTrigger asChild>
                         <Button variant="destructive">Delete report</Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>

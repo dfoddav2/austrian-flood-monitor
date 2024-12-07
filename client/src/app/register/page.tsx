@@ -73,7 +73,7 @@ export default function RegisterPage() {
       .then((response) => {
         console.log("Outcome: ", response);
 
-        if (response.status !== 200) {
+        if (response.status !== 201) {
           setError(response.error.value.error);
           console.error(response.error.value.error);
         } else {

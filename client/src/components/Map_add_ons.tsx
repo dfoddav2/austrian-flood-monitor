@@ -3,7 +3,7 @@ import React from "react";
 import { MapContainer, TileLayer, Marker, Popup, GeoJSON, LayersControl } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
-import austrianRivers from "./austrian-rivers.json"; 
+import austrianRivers from "./austrian_rivers.json"; 
 
 type CityCoordinates = {
   [key: string]: [number, number];

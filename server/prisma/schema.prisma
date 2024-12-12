@@ -10,8 +10,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum UserRole {
@@ -21,13 +22,21 @@ enum UserRole {
 }
 
 model User {
+  // Meta
   id String @id @unique @default(cuid())
   email String @unique
   name String
+  userRole UserRole @default(USER)
+  verified Boolean @default(false)
+  
+  // Credentials
   username String @unique
   password String
-  userRole UserRole @default(USER)
+  
+  // Reports features
   reports Report[]
+  upvotedReports Report[] @relation("UpvotedReports")
+  downvotedReports Report[] @relation("DownvotedReports")
 }
 
 model Report {
@@ -36,6 +45,12 @@ model Report {
   createdAt DateTime  @default(now())
   author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId String
+
+  // Votes
+  upvotes Int @default(0)
+  downvotes Int @default(0)
+  upvotedBy User[] @relation("UpvotedReports")
+  downvotedBy User[] @relation("DownvotedReports")
 
   // Content
   title String

@@ -6,13 +6,22 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: [
-      "localhost",
-      "res.cloudinary.com",
-      "www.preventionweb.net",
-      "imgl.krone.at",
-      "bufferwall.com",
+    // domains: ["localhost", "res.cloudinary.com", "bufferwall.com"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/imc-austrian-flood-monitor/image/upload/**",
+      },
+      {
+        protocol: "https",
+        hostname: "bufferwall.com",
+        pathname: "/**",
+      }
     ],
+  },
+  env: {
+    NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: "imc-austrian-flood-monitor",
   },
 };
 

@@ -42,7 +42,7 @@ export const sendVerificationEmail = async (
     Bun.env.NODE_ENV ?? panic("NODE_ENV environment variable not set");
   const verificationLink =
     environment === "production"
-      ? `https://austrian-flood-monitor.vercel.app/verify/${verificationToken}`
+      ? `https://austrian-flood-monitor.vercel.app/user/verify/${verificationToken}`
       : `http://localhost:3000/user/verify/${verificationToken}`;
   // Define email options
   const mailOptions = {

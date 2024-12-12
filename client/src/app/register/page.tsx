@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { Loader2, AlertCircle } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -22,15 +23,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { eden } from "@/utils/api";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function RegisterPage() {
+  const router = useRouter();
+
   const setCookie = useAuthStore((state) => state.setCookie);
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
-  const router = useRouter();
+
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const formSchema = z.object({
     email: z.string().email().min(8).max(50),
@@ -56,14 +63,19 @@ export default function RegisterPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setLoading(true);
+    const delay = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
+    await delay(1000); // This is a delay function to test the loading spinner
     eden.auth.register
       .post(values)
       .then((response) => {
         console.log("Outcome: ", response);
 
-        if (response.status !== 200) {
-          console.error(response.data.error);
+        if (response.status !== 201) {
+          setError(response.error.value.error);
+          console.error(response.error.value.error);
         } else {
           setCookie("authCookie", response.data.authCookie);
           // setCookie("token", response.data.token);
@@ -72,14 +84,34 @@ export default function RegisterPage() {
         }
       })
       .catch((error) => {
+        setError(error);
         console.error(error);
-      });
+      })
+      .finally(() => setLoading(false));
   }
 
   return (
     <div>
-      <h1 className="text-3xl font-bold pb-4">This is the register page</h1>
-      <Card>
+      {error && (
+        <Alert variant="destructive" className="mb-5">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle className="font-bold text-base">Error</AlertTitle>
+          <AlertDescription>
+            <div className="flex justify-between items-center">
+              {error}
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  setError(null);
+                }}
+              >
+                Dismiss
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+      <Card className="min-w-96">
         <CardHeader>
           <CardTitle>Register</CardTitle>
           <CardDescription>Please note the requirements</CardDescription>
@@ -149,7 +181,10 @@ export default function RegisterPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit">Submit</Button>
+              <Button type="submit" disabled={loading}>
+                {loading && <Loader2 className="animate-spin" />}
+                Submit
+              </Button>
             </form>
           </Form>
         </CardContent>

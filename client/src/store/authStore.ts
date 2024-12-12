@@ -5,19 +5,24 @@ import { jwtDecode } from "jwt-decode";
 interface User {
   id: string;
   username: string;
-  email: string;
+  // email: string;
+  verified: boolean;
+  userRole: string;
 }
 
 interface AuthState {
   token: string | null;
   user: User | null;
+  authCookie: string | null;
   clearAuth: () => void;
   initializeAuth: () => void;
+  setCookie: (cookieName: string, cookieValue: string) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   token: null,
   user: null,
+  authCookie: null,
   setCookie: (cookieName: string, cookieValue: string) => {
     Cookies.set(cookieName, cookieValue, {
       secure: true,

@@ -11,7 +11,7 @@ The `server` directory contains the Bun + Elysia.js backend application and data
 You can find actual database queries made via Prisma Client in the `sql.ts` if you want to create any new query, write it here. And use it inside the `index.ts` or any other route of the Elysia application.
 
 > [!IMPORTANT]  
-> Database changes must be migrated by starting the database and then running `DATABASE_URL=postgres://postgres:your-super-secret-and-long-postgres-password@localhost:5432/postgres bun prisma migrate dev` inside the `server` directory. This will create a new migration SQL file inside `./prisma/migrations`.
+> Database changes must be migrated by starting the database and then running `DATABASE_URL=postgres://postgres:your-super-secret-and-long-postgres-password@localhost:5432/postgres npx prisma migrate dev` inside the `server` directory. This will create a new migration SQL file inside `./prisma/migrations`.
 
 ```plaintext
 server

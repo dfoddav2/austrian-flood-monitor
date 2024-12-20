@@ -221,7 +221,7 @@ const ReportPage = () => {
           </AlertDescription>
         </Alert>
       )}
-      <Card className="max-w-2xl relative">
+      <Card className="relative min-w-full sm:min-w-96 md:min-w-128 lg:min-w-160 xl:min-w-192 max-w-full sm:max-w-96 md:max-w-128 lg:max-w-160 xl:max-w-256 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20 my-4">
         {loading ? (
           <>
             <CardHeader>

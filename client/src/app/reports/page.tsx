@@ -170,8 +170,8 @@ export default function ReportsPage() {
   }, [currentPage, sortBy, sortOrder, pageSize, userLatitude, userLongitude]);
 
   return (
-    <Card className="relative">
-      <div className="min-w-96"></div>
+    <Card className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20 my-4">
+      <div className=""></div>
       {user && (
         <div className="absolute top-5 right-5">
           <Link href="/reports/create" passHref>
@@ -346,13 +346,15 @@ export default function ReportsPage() {
       </CardHeader>
       <CardContent>
         {loading ? (
-          [...Array(pageSize)].map((_, i) => (
-            <Skeleton key={i} className="w-96 h-40 rounded-lg mt-5" />
-          ))
+          <div className="flex flex-col gap-5">
+            {[...Array(pageSize)].map((_, i) => (
+              <Skeleton key={i} className="min-w-full h-48 rounded-lg" />
+            ))}
+          </div>
         ) : !loading && reports ? (
           <div className="flex flex-col gap-5">
             {reports.map((report: Report) => (
-              <Card key={report.id} className="relative max-w-96">
+              <Card key={report.id} className="relative min-w-full">
                 <div className="absolute top-5 right-5">
                   <p>
                     Score:{" "}

@@ -270,7 +270,7 @@ const MapWithRivers: React.FC = () => {
 
   return (
     <div>
-      <div ref={mapContainer} className="rounded-lg h-96 w-screen" />
+      <div ref={mapContainer} className="rounded-lg h-96 w-full" />
     </div>
   );
 };

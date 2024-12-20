@@ -7,6 +7,12 @@ import L from "leaflet";
 import proj4 from "proj4";
 import "proj4leaflet";
 
+// Marker clusters
+import "leaflet.markercluster";
+import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+
 // Import marker icons
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
@@ -27,7 +33,7 @@ const MapWithRivers: React.FC = () => {
   const hq30LayerRef = useRef<L.TileLayer.WMS | null>(null);
   const hq100LayerRef = useRef<L.TileLayer.WMS | null>(null);
   // const waterLevelsRef = useRef<L.TileLayer.WMS | null>(null);
-  const wfsLayerGroupRef = useRef<L.LayerGroup | null>(null);
+  const wfsLayerGroupRef = useRef<L.MarkerClusterGroup | null>(null);
   const overlaysRef = useRef<{ [key: string]: L.Layer }>({});
   const layerControlRef = useRef<L.Control.Layers | null>(null);
 
@@ -117,9 +123,9 @@ const MapWithRivers: React.FC = () => {
       features: reprojectedFeatures,
     };
 
-    // Create or clear the layer group for the GeoJSON data
+    // Create or clear the MarkerClusterGroup for the GeoJSON data
     if (!wfsLayerGroupRef.current) {
-      wfsLayerGroupRef.current = L.layerGroup().addTo(map.current!);
+      wfsLayerGroupRef.current = L.markerClusterGroup().addTo(map.current!);
     } else {
       wfsLayerGroupRef.current.clearLayers();
     }

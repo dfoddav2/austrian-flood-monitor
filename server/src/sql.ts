@@ -1,5 +1,6 @@
 import { Prisma, User, UserRole } from "@prisma/client";
 import { prisma } from "@server/prisma";
+import { verifyPassword } from "@utils/verifyPassword";
 
 // TODO: Change this so it only fetches the necessary fields
 export async function getAllUsers(): Promise<User[]> {
@@ -116,15 +117,25 @@ export async function checkCredentials({
   email: string;
   password: string;
 }): Promise<User | null> {
-  const user = prisma.user.findFirst({
+  // const user = prisma.user.findFirst({
+  //   where: {
+  //     email,
+  //     password,
+  //   },
+  // });
+  const user = await prisma.user.findUnique({
     where: {
       email,
-      password,
     },
   });
   if (!user) {
     throw new Error("Invalid credentials");
   } else {
+    // Chceck that the password matches
+    const match = await verifyPassword(password, user.password);
+    if (!match) {
+      throw new Error("Invalid credentials");
+    }
     return user;
   }
 }

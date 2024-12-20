@@ -9,6 +9,7 @@ import {
 } from "@utils/types";
 import { panic } from "@utils/panic";
 import { sendVerificationEmail } from "@utils/emailVerification";
+import { hashPassword } from "@utils/hashPassword";
 
 const expiresIn = Number(process.env.EXPIRES_IN) ?? panic("EXPIRES_IN not set");
 const nodeEnv = process.env.NODE_ENV ?? panic("NODE_ENV not set");
@@ -25,6 +26,8 @@ export const auth = new Elysia({ prefix: "/auth" })
       { authCookie: string; verificationToken: string } | { error: string }
     > => {
       try {
+        // Hash the password
+        password = await hashPassword(password);
         const user = await sql.createUser(email, name, username, password);
         set.status = 201;
 

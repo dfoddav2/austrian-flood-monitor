@@ -1,10 +1,22 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcrypt";
 // import { createId } from "@paralleldrive/cuid2";
 
 const prisma = new PrismaClient();
+// Hashing
+const saltRounds = 10;
+
+async function hashPassword(password) {
+  const salt = await bcrypt.genSalt(saltRounds);
+  const hashedPassword = await bcrypt.hash(password, salt);
+  return hashedPassword;
+}
 
 async function main() {
   try {
+    // Hash password 123
+    const hashedPassword = await hashPassword("password123");
+
     // Create users
     const users = await prisma.user.createMany({
       data: [
@@ -13,7 +25,7 @@ async function main() {
           email: "admin@example.com",
           name: "Admin User",
           username: "adminuser",
-          password: "password123", // Ensure to hash passwords in a real application
+          password: hashedPassword, // Ensure to hash passwords in a real application
           userRole: "ADMIN",
         },
         {
@@ -21,7 +33,7 @@ async function main() {
           email: "responder@example.com",
           name: "Responder User",
           username: "responderuser",
-          password: "password123", // Ensure to hash passwords in a real application
+          password: hashedPassword, // Ensure to hash passwords in a real application
           userRole: "RESPONDER",
         },
         {
@@ -29,7 +41,7 @@ async function main() {
           email: "user@example.com",
           name: "Regular User",
           username: "regularuser",
-          password: "password123", // Ensure to hash passwords in a real application
+          password: hashedPassword, // Ensure to hash passwords in a real application
           userRole: "USER",
         },
       ],

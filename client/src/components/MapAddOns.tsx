@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import proj4 from "proj4";
 import "proj4leaflet";
+import {ToggleGroup,ToggleGroupItem} from "@/components/ui/toggle-group"
 
 // Marker clusters
 import "leaflet.markercluster";
@@ -14,16 +15,25 @@ import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
 // Import marker icons
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
+//import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+//import markerIcon from "leaflet/dist/images/marker-icon.png";
+//import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 // Set default icon options
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x.src,
-  iconUrl: markerIcon.src,
-  shadowUrl: markerShadow.src,
+//L.Icon.Default.mergeOptions({
+  //iconRetinaUrl: markerIcon2x.src,
+  //iconUrl: markerIcon.src,
+  //shadowUrl: markerShadow.src,
+//});
+
+//Create custom marker
+const Icon = L.icon({
+  iconUrl: '/images/pin.png',
+  iconSize: [38, 50],
+  iconAnchor: [22, 50],
+  popupAnchor: [-3, -76],
 });
+
 
 const MapWithRivers: React.FC = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -36,9 +46,22 @@ const MapWithRivers: React.FC = () => {
   const wfsLayerGroupRef = useRef<L.MarkerClusterGroup | null>(null);
   const overlaysRef = useRef<{ [key: string]: L.Layer }>({});
   const layerControlRef = useRef<L.Control.Layers | null>(null);
+  //constant legend
+  const legendRef = useRef<L.Control | null>(null)
+
+  //constants for toggles
+  const [showHQ30, setShowHQ30] = useState(true);
+  const [showHQ100, setShowHQ100] = useState(true);
+  const [showWaterLevels, setShowWaterLevels] = useState(true);
 
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
+
+
+  
+
+
+  
 
   useEffect(() => {
     setMounted(true);
@@ -237,6 +260,21 @@ const MapWithRivers: React.FC = () => {
       // TODO: Legends?
       // Add the legend to the map
       // legend.addTo(map.current!);
+      const legend = L.control({ position: 'bottomright' });
+
+      legend.onAdd = function (map) {
+        const div = L.DomUtil.create('div', 'info legend');
+        div.innerHTML += '<h4>Flood Risk</h4>';
+        //div.innerHTML += '<i style="background:find color;"></i> HQ100 <br>';
+       // div.innerHTML += '<i style="background:find color ;"></i> HQ30 <br>';
+        div.innerHTML += '<h4>Water Levels</h4>';
+        div.innerHTML += '<i style="background: #00008B;"></i>Water levels<br>';
+        return div;
+      };
+
+      legendRef.current = legend; 
+      legend.addTo(map.current); 
+
 
       // Add overlays to the map
       hq30LayerRef.current.addTo(map.current);
@@ -274,11 +312,52 @@ const MapWithRivers: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme]);
 
+  useEffect(() => {
+    if (!map.current) return;
+  
+    //HQ30 layer
+    if (showHQ30 && hq30LayerRef.current) {
+      hq30LayerRef.current.addTo(map.current);
+    } else if (!showHQ30 && hq30LayerRef.current) {
+      map.current.removeLayer(hq30LayerRef.current);
+    }
+  
+    //HQ100 layer
+    if (showHQ100 && hq100LayerRef.current) {
+      hq100LayerRef.current.addTo(map.current);
+    } else if (!showHQ100 && hq100LayerRef.current) {
+      map.current.removeLayer(hq100LayerRef.current);
+    }
+  
+    //Water level layers
+    if (showWaterLevels && wfsLayerGroupRef.current) {
+      wfsLayerGroupRef.current.addTo(map.current);
+    } else if (!showWaterLevels && wfsLayerGroupRef.current) {
+      map.current.removeLayer(wfsLayerGroupRef.current);
+    }
+  }, [showHQ30, showHQ100, showWaterLevels]);
+  
+
   return (
-    <div>
+    <div className="relative">
       <div ref={mapContainer} className="rounded-lg h-96 w-full" />
+      <div className="absolute top-2 left-2 z-[1000] bg-white dark:bg-gray-800 p-2 rounded-lg shadow-md">
+        <ToggleGroup type="multiple" className="flex flex-col space-y-2" variant="outline">
+          <ToggleGroupItem value="hq30" aria-label="Toggle HQ30"
+            onClick={() => setShowHQ30(!showHQ30)}
+            data-state={showHQ30 ? "on" : "off"}>HQ30 Flood Areas</ToggleGroupItem>
+          <ToggleGroupItem value="hq100" aria-label="Toggle HQ100"
+            onClick={() => setShowHQ100(!showHQ100)}
+            data-state={showHQ100 ? "on" : "off"}>HQ100 Flood Areas</ToggleGroupItem>
+          <ToggleGroupItem value="waterLevels" aria-label="Toggle Water Levels"
+            onClick={() => setShowWaterLevels(!showWaterLevels)}
+            data-state={showWaterLevels ? "on" : "off"}>Water Level</ToggleGroupItem>
+        </ToggleGroup>
+      </div>
     </div>
   );
+  
 };
+
 
 export default MapWithRivers;

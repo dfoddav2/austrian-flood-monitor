@@ -224,13 +224,11 @@ export const reports = new Elysia({ prefix: "/reports" })
     async ({
       set,
       id,
-      body: { reportId, title, description, latitude, longitude, images },
+      body: { reportId, title, description, images },
     }: AuthContextWithBody<{
       reportId: string;
       title: string;
       description: string;
-      latitude: number;
-      longitude: number;
       images: { source: string; description: string }[];
     }>) => {
       if (!id) {
@@ -243,8 +241,6 @@ export const reports = new Elysia({ prefix: "/reports" })
           reportId,
           title,
           description,
-          latitude,
-          longitude,
           images
         );
         set.status = 200;
@@ -269,12 +265,9 @@ export const reports = new Elysia({ prefix: "/reports" })
     },
     {
       body: t.Object({
-        id: t.String(),
         reportId: t.String(),
         title: t.Optional(t.String()),
         description: t.Optional(t.String()),
-        latitude: t.Optional(t.String()),
-        longitude: t.Optional(t.String()),
         images: t.Optional(
           t.Array(
             t.Object({

@@ -133,7 +133,6 @@ export async function getAllReports() {
   return await prisma.report.findMany();
 }
 
-// In sql.ts
 export async function getReports({
   page,
   pageSize,
@@ -342,6 +341,43 @@ export async function createReport(
   });
 }
 
+export async function updateReport(
+  userId: string,
+  reportId: string,
+  title: string,
+  description: string,
+  images?: { source: string; description: string }[]
+) {
+  const report = await prisma.report.findUnique({
+    where: {
+      id: reportId,
+    },
+  });
+  if (!report) {
+    throw new Error("Report not found");
+  }
+  if (report.authorId !== userId) {
+    throw new Error("You are not the author of this report");
+  }
+
+  return await prisma.report.update({
+    where: {
+      id: reportId,
+    },
+    data: {
+      title,
+      description,
+      images: {
+        deleteMany: {},
+        create: images?.map((image) => ({
+          source: image.source,
+          description: image.description,
+        })),
+      },
+    },
+  });
+}
+
 export async function deleteReport(authorId: string, reportId: string) {
   const report = await prisma.report.findUnique({
     where: {
@@ -358,46 +394,6 @@ export async function deleteReport(authorId: string, reportId: string) {
   await prisma.report.delete({
     where: {
       id: reportId,
-    },
-  });
-}
-
-export async function updateReport(
-  authorId: string,
-  reportId: string,
-  title: string,
-  description: string,
-  latitude: number,
-  longitude: number,
-  images?: { source: string; description: string }[]
-) {
-  const report = await prisma.report.findUnique({
-    where: {
-      id: reportId,
-    },
-  });
-  if (!report) {
-    throw new Error("Report not found");
-  }
-  if (report.authorId !== authorId) {
-    throw new Error("You are not the author of this report");
-  }
-
-  return await prisma.report.update({
-    where: {
-      id: reportId,
-    },
-    data: {
-      title,
-      description,
-      latitude,
-      longitude,
-      images: {
-        create: images?.map((image) => ({
-          source: image.source,
-          description: image.description,
-        })),
-      },
     },
   });
 }

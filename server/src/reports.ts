@@ -101,9 +101,11 @@ export const reports = new Elysia({ prefix: "/reports" })
       } catch (error) {
         if (error instanceof Error) {
           if (error.message.includes("not found")) {
+            console.log("Report not found");
             set.status = 404; // Not Found
             return { error: error.message };
           } else {
+            console.log("Unknown error occurred");
             set.status = 500; // Internal Server Error
             return { error: "Something went wrong" };
           }
@@ -379,5 +381,39 @@ export const reports = new Elysia({ prefix: "/reports" })
         tags: ["reports"],
         description: "Downvote a report based on its ID",
       },
+    }
+  )
+  .post(
+    "comment-on-report",
+    async ({
+      set,
+      body,
+      id,
+    }: AuthContextWithBody<{ reportId: string; content: string }>) => {
+      if (!id) {
+        set.status = 401; // Unauthorized
+        return { error: "Not authorized" };
+      }
+      // Call SQL function to add comment
+      try {
+        const comment = sql.createComment(id, body.reportId, body.content);
+        set.status = 201;
+        return comment;
+      } catch (error) {
+        if (error instanceof Error) {
+          if (error.message.includes("not found")) {
+            set.status = 404; // Not Found
+            return { error: error.message };
+          } else if (error.message.includes("authorized")) {
+            set.status = 403; // Forbidden
+            return { error: error.message };
+          } else {
+            set.status = 500; // Internal Server Error
+            return { error: "Something went wrong" };
+          }
+        }
+        set.status = 500;
+        return { error: "Something went wrong" };
+      }
     }
   );

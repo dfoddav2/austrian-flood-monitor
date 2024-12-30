@@ -54,6 +54,12 @@ interface Report {
   latitude: number;
   longitude: number;
   images: { id: string; source: string; description: string }[];
+  comments: {
+    id: string;
+    user: { name: string };
+    content: string;
+    timestamp: string;
+  }[];
   upvotes: number;
   downvotes: number;
   upvotedByUser: boolean;
@@ -72,6 +78,7 @@ const ReportPage = () => {
   const [loadingUpvote, setLoadingUpvote] = useState<boolean>(false);
   const [loadingDownvote, setLoadingDownvote] = useState<boolean>(false);
   const [loadingDelete, setLoadingDelete] = useState<boolean>(false);
+  const [loadingComment, setLoadingComment] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -200,6 +207,49 @@ const ReportPage = () => {
       });
   };
 
+  const handleNewComment = async () => {
+    if (!report) {
+      return;
+    }
+
+    setLoadingComment(true);
+    console.log("Creating new comment");
+    eden.reports["comment-on-report"]
+      .post({ reportId: report.id, content: "New comment" })
+      .then((response) => {
+        if (response.status !== 201) {
+          setError(response.error.value.error);
+          console.error(response.error.value.error);
+        } else {
+          console.log("Comment created", response.data);
+          setReport((prevReport) => {
+            if (prevReport) {
+              return {
+                ...prevReport,
+                comments: [
+                  ...prevReport.comments,
+                  {
+                    id: response.data.id,
+                    user: { name: user?.username || "Unknown" },
+                    content: "New comment",
+                    timestamp: response.data.timestamp,
+                  },
+                ],
+              };
+            }
+            return prevReport;
+          });
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        setError("Something went wrong");
+      })
+      .finally(() => {
+        setLoadingComment(false);
+      });
+  };
+
   return (
     <div>
       {error && (
@@ -251,7 +301,7 @@ const ReportPage = () => {
                       <AlertDialogTrigger asChild>
                         <Button variant="destructive">Delete report</Button>
                       </AlertDialogTrigger>
-                      <AlertDialogContent>
+                      <AlertDialogContent className="z-50">
                         <AlertDialogHeader>
                           <AlertDialogTitle>
                             Are you absolutely sure?
@@ -388,6 +438,63 @@ const ReportPage = () => {
           </>
         )}
       </Card>
+      {(user?.userRole === "RESPONDER" ||
+        user?.userRole === "ADMIN" ||
+        user?.id === report?.authorId) && (
+        <Card className="max-w-2xl mt-5 relative">
+          <CardHeader>
+            <CardTitle>Comments</CardTitle>
+          </CardHeader>
+          <CardContent className="mt-5">
+            {report?.comments?.map((comment) => (
+              <Card key={comment.id} className="mb-4">
+                <CardHeader>
+                  <CardTitle>{comment.user.name}</CardTitle>
+                  <CardDescription>
+                    {" "}
+                    {new Date(comment.timestamp).toLocaleString(undefined, {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p>{comment.content}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </CardContent>
+          <div className="absolute top-5 right-5 flex gap-2 items-center">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button aria-label="Comment">Comment</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Comment on this report</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Here you can give additional information or ask questions
+                    regarding the report.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleNewComment}
+                    disabled={loadingComment}
+                  >
+                    {loadingComment && <Loader2 className="animate-spin" />}
+                    Continue
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </Card>
+      )}
     </div>
   );
 };

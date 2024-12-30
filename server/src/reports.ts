@@ -101,9 +101,11 @@ export const reports = new Elysia({ prefix: "/reports" })
       } catch (error) {
         if (error instanceof Error) {
           if (error.message.includes("not found")) {
+            console.log("Report not found");
             set.status = 404; // Not Found
             return { error: error.message };
           } else {
+            console.log("Unknown error occurred");
             set.status = 500; // Internal Server Error
             return { error: "Something went wrong" };
           }
@@ -222,13 +224,11 @@ export const reports = new Elysia({ prefix: "/reports" })
     async ({
       set,
       id,
-      body: { reportId, title, description, latitude, longitude, images },
+      body: { reportId, title, description, images },
     }: AuthContextWithBody<{
       reportId: string;
       title: string;
       description: string;
-      latitude: number;
-      longitude: number;
       images: { source: string; description: string }[];
     }>) => {
       if (!id) {
@@ -241,8 +241,6 @@ export const reports = new Elysia({ prefix: "/reports" })
           reportId,
           title,
           description,
-          latitude,
-          longitude,
           images
         );
         set.status = 200;
@@ -267,12 +265,9 @@ export const reports = new Elysia({ prefix: "/reports" })
     },
     {
       body: t.Object({
-        id: t.String(),
         reportId: t.String(),
         title: t.Optional(t.String()),
         description: t.Optional(t.String()),
-        latitude: t.Optional(t.String()),
-        longitude: t.Optional(t.String()),
         images: t.Optional(
           t.Array(
             t.Object({
@@ -378,6 +373,50 @@ export const reports = new Elysia({ prefix: "/reports" })
       detail: {
         tags: ["reports"],
         description: "Downvote a report based on its ID",
+      },
+    }
+  )
+  .post(
+    "comment-on-report",
+    async ({
+      set,
+      body,
+      id,
+    }: AuthContextWithBody<{ reportId: string; content: string }>) => {
+      if (!id) {
+        set.status = 401; // Unauthorized
+        return { error: "Not authorized" };
+      }
+      // Call SQL function to add comment
+      try {
+        const comment = sql.createComment(id, body.reportId, body.content);
+        set.status = 201;
+        return comment;
+      } catch (error) {
+        if (error instanceof Error) {
+          if (error.message.includes("not found")) {
+            set.status = 404; // Not Found
+            return { error: error.message };
+          } else if (error.message.includes("authorized")) {
+            set.status = 403; // Forbidden
+            return { error: error.message };
+          } else {
+            set.status = 500; // Internal Server Error
+            return { error: "Something went wrong" };
+          }
+        }
+        set.status = 500;
+        return { error: "Something went wrong" };
+      }
+    },
+    {
+      body: t.Object({
+        reportId: t.String(),
+        content: t.String(),
+      }),
+      detail: {
+        tags: ["reports"],
+        description: "Add a comment to a report if it is allowed for the signed in user",
       },
     }
   );

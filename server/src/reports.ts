@@ -415,5 +415,15 @@ export const reports = new Elysia({ prefix: "/reports" })
         set.status = 500;
         return { error: "Something went wrong" };
       }
+    },
+    {
+      body: t.Object({
+        reportId: t.String(),
+        content: t.String(),
+      }),
+      detail: {
+        tags: ["reports"],
+        description: "Add a comment to a report if it is allowed for the signed in user",
+      },
     }
   );

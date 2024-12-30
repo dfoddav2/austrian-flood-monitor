@@ -236,7 +236,7 @@ export async function getReportById(
           include: {
             user: {
               select: {
-                name: true,
+                username: true,
               },
             },
           },
@@ -267,7 +267,7 @@ export async function getReportById(
             include: {
               user: {
                 select: {
-                  name: true,
+                  username: true,
                 },
               },
             },

@@ -59,7 +59,6 @@ const app = new Elysia()
 
     interface Token {
       id: string;
-      expiry: number;
       userRole: string;
       email: string;
       expiry: number;

@@ -218,6 +218,7 @@ const MapWithRivers: React.FC = () => {
   //Reports - internal data
   const fetchReports = async () => {
     interface Report {
+      id: string;
       title: string;
       description: string;
       createdAt: string;
@@ -249,9 +250,16 @@ const MapWithRivers: React.FC = () => {
 
     // Add markers for each report
     reports.forEach((report) => {
-      const marker = L.marker([report.latitude, report.longitude], {
-        // icon: Icon,
-      }).bindPopup(`<h3>${report.title}</h3><p>${report.description}</p>`);
+      const formattedDate = new Date(report.createdAt).toLocaleString();
+      const popupContent = `
+        <h3 style='font-weight:bold;'>${report.title}</h3>
+        <p>${report.description}</p>
+        <strong>Created at:</strong> ${formattedDate}<br>
+        <a href="/reports/${report.id}" target="_blank">View Report</a>
+      `;
+      const marker = L.marker([report.latitude, report.longitude]).bindPopup(
+        popupContent
+      );
       marker.addTo(userReportsLayerGroupRef.current!);
     });
 

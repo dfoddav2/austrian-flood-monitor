@@ -6,7 +6,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import proj4 from "proj4";
 import "proj4leaflet";
-import {ToggleGroup,ToggleGroupItem} from "@/components/ui/toggle-group"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 // Marker clusters
 import "leaflet.markercluster";
@@ -15,55 +15,48 @@ import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
 // Import marker icons
-//import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-//import markerIcon from "leaflet/dist/images/marker-icon.png";
-//import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import { eden } from "@/utils/api";
 
 // Set default icon options
-//L.Icon.Default.mergeOptions({
-  //iconRetinaUrl: markerIcon2x.src,
-  //iconUrl: markerIcon.src,
-  //shadowUrl: markerShadow.src,
-//});
-
-//Create custom marker
-const Icon = L.icon({
-  iconUrl: '/images/pin.png',
-  iconSize: [38, 50],
-  iconAnchor: [22, 50],
-  popupAnchor: [-3, -76],
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x.src,
+  iconUrl: markerIcon.src,
+  shadowUrl: markerShadow.src,
 });
 
+//Create custom marker
+// const Icon = L.icon({
+//   iconUrl: "/images/pin.png",
+//   iconSize: [38, 50],
+//   iconAnchor: [22, 50],
+//   popupAnchor: [-3, -76],
+// });
 
 const MapWithRivers: React.FC = () => {
+  // Map and component refs
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   // const markerRef = useRef<L.Marker | null>(null);
   const baseTileLayerRef = useRef<L.TileLayer | null>(null);
-  const hq30LayerRef = useRef<L.TileLayer.WMS | null>(null);
-  const hq100LayerRef = useRef<L.TileLayer.WMS | null>(null);
-  // const waterLevelsRef = useRef<L.TileLayer.WMS | null>(null);
-  const wfsLayerGroupRef = useRef<L.MarkerClusterGroup | null>(null);
   const overlaysRef = useRef<{ [key: string]: L.Layer }>({});
   const layerControlRef = useRef<L.Control.Layers | null>(null);
-  //constant for reports
-  const [reports, setReports] = useState<any[]>([]);
-  //constant legend
-  const legendRef = useRef<L.Control | null>(null)
+  // const legendRef = useRef<L.Control | null>(null);
 
-  //constants for toggles
-  const [showHQ30, setShowHQ30] = useState(true);
-  const [showHQ100, setShowHQ100] = useState(true);
-  const [showWaterLevels, setShowWaterLevels] = useState(true);
+  // States and refs for layers
+  const hq30LayerRef = useRef<L.TileLayer.WMS | null>(null); // HQ30
+  const hq100LayerRef = useRef<L.TileLayer.WMS | null>(null); // HQ100
+  const wfsLayerGroupRef = useRef<L.MarkerClusterGroup | null>(null); // Water levels
+  const userReportsLayerGroupRef = useRef<L.MarkerClusterGroup | null>(null); // User reports
+  const [showHQ30, setShowHQ30] = useState(false);
+  const [showHQ100, setShowHQ100] = useState(false);
+  const [showWaterLevels, setShowWaterLevels] = useState(false);
+  const [showReports, setShowReports] = useState(true);
 
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
-
-
-  
-
-
-  
 
   useEffect(() => {
     setMounted(true);
@@ -96,6 +89,9 @@ const MapWithRivers: React.FC = () => {
     }
   };
 
+  // ------------------------
+  // ---- [Water levels] ----
+  // ------------------------
   // Function to fetch and add WFS data
   const fetchWFSData = async () => {
     const wfsUrl =
@@ -150,7 +146,7 @@ const MapWithRivers: React.FC = () => {
 
     // Create or clear the MarkerClusterGroup for the GeoJSON data
     if (!wfsLayerGroupRef.current) {
-      wfsLayerGroupRef.current = L.markerClusterGroup().addTo(map.current!);
+      wfsLayerGroupRef.current = L.markerClusterGroup();
     } else {
       wfsLayerGroupRef.current.clearLayers();
     }
@@ -206,15 +202,65 @@ const MapWithRivers: React.FC = () => {
       },
     }).addTo(wfsLayerGroupRef.current);
 
-    // Add the WFS layer group to the overlays
-    overlaysRef.current["Water Levels"] = wfsLayerGroupRef.current!;
-
-    // Update the overlays and layer control
+    // Add to and update the overlays and layer control
     overlaysRef.current["Water Levels"] = wfsLayerGroupRef.current!;
     if (map.current && layerControlRef.current) {
       layerControlRef.current.addOverlay(
         wfsLayerGroupRef.current!,
         "Water Levels"
+      );
+    }
+  };
+
+  // ----------------------------
+  // ---- [Internal reports] ----
+  // ----------------------------
+  //Reports - internal data
+  const fetchReports = async () => {
+    interface Report {
+      title: string;
+      description: string;
+      createdAt: string;
+      latitude: number;
+      longitude: number;
+    }
+
+    let reports: Report[] | [] = [];
+    await eden.reports["get-map-report-info"]
+      .get()
+      .then((response) => {
+        if (response.status !== 200) {
+          console.error("Error fetching reports", response);
+          return;
+        } else {
+          // console.log("Reports fetched", response.data);
+          reports = response.data;
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching reports", error);
+      });
+
+    // Create or clear the MarkerClusterGroup for the reports
+    if (!userReportsLayerGroupRef.current) {
+      userReportsLayerGroupRef.current = L.markerClusterGroup();
+    }
+    userReportsLayerGroupRef.current.clearLayers();
+
+    // Add markers for each report
+    reports.forEach((report) => {
+      const marker = L.marker([report.latitude, report.longitude], {
+        // icon: Icon,
+      }).bindPopup(`<h3>${report.title}</h3><p>${report.description}</p>`);
+      marker.addTo(userReportsLayerGroupRef.current!);
+    });
+
+    // Add to and update the overlays and layer control
+    overlaysRef.current["User Reports"] = userReportsLayerGroupRef.current!;
+    if (layerControlRef.current) {
+      layerControlRef.current.addOverlay(
+        userReportsLayerGroupRef.current!,
+        "User Reports"
       );
     }
   };
@@ -259,56 +305,34 @@ const MapWithRivers: React.FC = () => {
         }
       );
 
+      // ----------------------------------------------------------------------------
       // TODO: Legends?
       // Add the legend to the map
       // legend.addTo(map.current!);
-      const legend = L.control({ position: 'bottomright' });
+      // const legend = L.control({ position: "bottomright" });
 
-      legend.onAdd = function (map) {
-        const div = L.DomUtil.create('div', 'info legend');
-        div.innerHTML += '<h4>Flood Risk</h4>';
-        //div.innerHTML += '<i style="background:find color;"></i> HQ100 <br>';
-       // div.innerHTML += '<i style="background:find color ;"></i> HQ30 <br>';
-        div.innerHTML += '<h4>Water Levels</h4>';
-        div.innerHTML += '<i style="background: #00008B;"></i>Water levels<br>';
-        return div;
-      };
+      // legend.onAdd = function (map) {
+      //   const div = L.DomUtil.create("div", "info legend");
+      //   div.innerHTML += "<h4>Flood Risk</h4>";
+      //   // div.innerHTML += '<i style="background:find color;"></i> HQ100 <br>';
+      //   // div.innerHTML += '<i style="background:find color ;"></i> HQ30 <br>';
+      //   div.innerHTML += "<h4>Water Levels</h4>";
+      //   div.innerHTML += '<i style="background: #00008B;"></i>Water levels<br>';
+      //   return div;
+      // };
 
-      legendRef.current = legend; 
-      legend.addTo(map.current); 
-      
-      //Reports
-      useEffect(()=> {
-        const fetchReports = async () => {
-          try {
-            const response = await fetch('/api/reports/get-map-report-info');
-            const data = await response.json();
-          } catch (error) {
-            console.error("Error fetching reports:", error);
-          }
-        };
-        fetchReports();
-      }, []);
+      // legendRef.current = legend;
+      // legend.addTo(map.current);
+      // ----------------------------------------------------------------------------
 
-      useEffect(() => {
-        reports.forEach((report)=> {
-          const marker = L.marker([report.latitude, report.longitude], { icon: Icon })
-          .bindPopup('<h3>${report.title}</h3><p>${report.description}</p>');
-          marker.addTo(map.current);
-        });
-      }, [reports, map.current])
-
-
-      // Add overlays to the map
-      hq30LayerRef.current.addTo(map.current);
-      hq100LayerRef.current.addTo(map.current);
-      // waterLevelsRef.current.addTo(map.current);
+      // Here we can add overlays to the map that we want to show by default, otherwise handled by `useEffect` initializations
+      // hq30LayerRef.current?.addTo(map.current);
+      // hq100LayerRef.current?.addTo(map.current);
 
       // Store overlays for layer control
       overlaysRef.current = {
         "HQ30 Flood Areas": hq30LayerRef.current,
         "HQ100 Flood Areas": hq100LayerRef.current,
-        // "Water Levels": waterLevelsRef.current, // added via fetchWFSData
       };
 
       // Initialize layer control without the WFS layer
@@ -316,11 +340,11 @@ const MapWithRivers: React.FC = () => {
         .layers({}, overlaysRef.current)
         .addTo(map.current!);
 
-      // Fetch and add WFS data
+      // Fetch and add WFS Water level and Internal Reports data
       await fetchWFSData();
-
-      // After fetching, add the WFS layer group to the map and layer control
-      wfsLayerGroupRef.current!.addTo(map.current!);
+      await fetchReports();
+      // wfsLayerGroupRef.current!.addTo(map.current!); // Not adding by default, handled by toggle and `useEffect`
+      userReportsLayerGroupRef.current!.addTo(map.current!);
     };
 
     initializeMap();
@@ -337,50 +361,79 @@ const MapWithRivers: React.FC = () => {
 
   useEffect(() => {
     if (!map.current) return;
-  
+
     //HQ30 layer
     if (showHQ30 && hq30LayerRef.current) {
       hq30LayerRef.current.addTo(map.current);
     } else if (!showHQ30 && hq30LayerRef.current) {
       map.current.removeLayer(hq30LayerRef.current);
     }
-  
+
     //HQ100 layer
     if (showHQ100 && hq100LayerRef.current) {
       hq100LayerRef.current.addTo(map.current);
     } else if (!showHQ100 && hq100LayerRef.current) {
       map.current.removeLayer(hq100LayerRef.current);
     }
-  
+
     //Water level layers
     if (showWaterLevels && wfsLayerGroupRef.current) {
       wfsLayerGroupRef.current.addTo(map.current);
     } else if (!showWaterLevels && wfsLayerGroupRef.current) {
       map.current.removeLayer(wfsLayerGroupRef.current);
     }
-  }, [showHQ30, showHQ100, showWaterLevels]);
-  
+
+    //User reports
+    if (showReports && userReportsLayerGroupRef.current) {
+      userReportsLayerGroupRef.current.addTo(map.current);
+    } else if (!showReports && userReportsLayerGroupRef.current) {
+      map.current.removeLayer(userReportsLayerGroupRef.current);
+    }
+  }, [showHQ30, showHQ100, showWaterLevels, showReports]);
 
   return (
-    <div className="relative">
-      <div ref={mapContainer} className="rounded-lg h-96 w-full" />
-      <div className="absolute top-2 left-2 z-[1000] bg-white dark:bg-gray-800 p-2 rounded-lg shadow-md">
-        <ToggleGroup type="multiple" className="flex flex-col space-y-2" variant="outline">
-          <ToggleGroupItem value="hq30" aria-label="Toggle HQ30"
-            onClick={() => setShowHQ30(!showHQ30)}
-            data-state={showHQ30 ? "on" : "off"}>HQ30 Flood Areas</ToggleGroupItem>
-          <ToggleGroupItem value="hq100" aria-label="Toggle HQ100"
-            onClick={() => setShowHQ100(!showHQ100)}
-            data-state={showHQ100 ? "on" : "off"}>HQ100 Flood Areas</ToggleGroupItem>
-          <ToggleGroupItem value="waterLevels" aria-label="Toggle Water Levels"
+    <div>
+      <div className="flex justify-items-start my-2">
+        <ToggleGroup type="multiple" className="space-x-2" variant="outline">
+          <ToggleGroupItem
+            value="userReports"
+            aria-label="Toggle User Reports"
+            onClick={() => setShowReports(!showReports)}
+            data-state={showReports ? "on" : "off"}
+          >
+            Reports
+          </ToggleGroupItem>
+          <ToggleGroupItem
+            value="waterLevels"
+            aria-label="Toggle Water Levels"
             onClick={() => setShowWaterLevels(!showWaterLevels)}
-            data-state={showWaterLevels ? "on" : "off"}>Water Level</ToggleGroupItem>
+            data-state={showWaterLevels ? "on" : "off"}
+          >
+            Water Levels
+          </ToggleGroupItem>
+          <ToggleGroupItem
+            value="hq100"
+            aria-label="Toggle HQ100"
+            onClick={() => setShowHQ100(!showHQ100)}
+            data-state={showHQ100 ? "on" : "off"}
+          >
+            HQ100
+          </ToggleGroupItem>
+          <ToggleGroupItem
+            value="hq30"
+            aria-label="Toggle HQ30"
+            onClick={() => setShowHQ30(!showHQ30)}
+            data-state={showHQ30 ? "on" : "off"}
+          >
+            HQ30
+          </ToggleGroupItem>
         </ToggleGroup>
+      </div>
+      <div className="relative">
+        <div ref={mapContainer} className="rounded-lg h-96 w-full" />
       </div>
     </div>
   );
-  
 };
-
 
 export default MapWithRivers;

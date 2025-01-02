@@ -343,10 +343,11 @@ const MapWithRivers: React.FC = () => {
         "HQ100 Flood Areas": hq100LayerRef.current,
       };
 
+      // TODO: Omitted for looks, but can be added back
       // Initialize layer control without the WFS layer
-      layerControlRef.current = L.control
-        .layers({}, overlaysRef.current)
-        .addTo(map.current!);
+      // layerControlRef.current = L.control
+      //   .layers({}, overlaysRef.current)
+      //   .addTo(map.current!);
 
       // Fetch and add WFS Water level and Internal Reports data
       await fetchWFSData();

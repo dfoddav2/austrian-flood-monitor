@@ -494,13 +494,13 @@ export async function downvoteReport(userId: string, reportId: string) {
 
 export async function getReportsMap() {
   const reports = await prisma.report.findMany({
-    select :{
-      reportID: true,
+    select: {
+      id: true,
       title: true,
       description: true,
-      authorID: true,
       latitude: true,
       longitude: true,
+      createdAt: true,
     },
   });
   return reports;

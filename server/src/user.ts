@@ -39,51 +39,68 @@ export const user = new Elysia({ prefix: "/user" })
       },
     }
   )
-.post(
-  "/edit-profile",
-  async ({
-    set,
-    body: { id, email, name, username, password },
-  }: AuthContextWithBody<{ id: string; email: string; name: string; username: string; password: string }>) => {
-    try {
-      // Prepare the update object including the plain-text password
-      const updateData: Record<string, string | undefined> = { };
-      if (email) updateData.email = email;
-      if (name) updateData.name = name;
-      if (username) updateData.username = username;
-  
-      const updatedUser = await sql.updateUser(id, updateData);
-        
-      set.status = 200;
-      return updatedUser;
-    } catch (error) {
-      if (error instanceof Error) {
-        if (error.message.includes("not found")) {
-          set.status = 404; // Not Found
-          return { error: error.message };
+  .post(
+    "/edit-profile",
+    async ({
+      jwt,
+      set,
+      id,
+      body: { name, username },
+    }: AuthContextWithBody<{ id: string; name: string; username: string }>) => {
+      if (!id) {
+        set.status = 401; // Bad Request
+        return { error: "Unauthorized, no userId provided" };
+      } else if (!name && !username) {
+        set.status = 400; // Bad Request
+        return { error: "No data provided" };
+      }
+
+      try {
+        // Prepare the update object including the plain-text password
+        const updateData: Record<string, string | undefined> = {};
+        if (name) updateData.name = name;
+        if (username) updateData.username = username;
+
+        const updatedUser = await sql.updateUser(id, updateData);
+
+        // Reset authentication token on the frontend
+        const authCookie_value = await jwt.sign({
+          id: id,
+          username: updatedUser.username,
+          userRole: updatedUser.userRole,
+        });
+
+        set.status = 200;
+        return { authCookie: authCookie_value };
+      } catch (error) {
+        if (error instanceof Error) {
+          if (error.message.includes("not found")) {
+            set.status = 404; // Not Found
+            return { error: error.message };
+          } else if (error.message.includes("exists")) {
+            set.status = 409; // Conflict
+            return { error: error.message };
+          } else {
+            set.status = 500; // Internal Server Error
+            return { error: "Something went wrong" };
+          }
         } else {
           set.status = 500; // Internal Server Error
-          return { error: "Something went wrong" };
+          return { error: "Unknown error occurred" };
         }
-      } else {
-        set.status = 500; // Internal Server Error
-        return { error: "Unknown error occurred" };
       }
-    }
-  },
-  {
-    body: t.Object({
-      id: t.String(),
-      email: t.Optional(t.String({ minLength: 8 })),
-      name: t.Optional(t.String({ minLength: 5 })),
-      username: t.Optional(t.String({ minLength: 5 })),
-    }),
-    detail: {
-      tags: ["user"],
-      description: "Edit user profile details",
     },
-  }
-)
+    {
+      body: t.Object({
+        name: t.Optional(t.String({ minLength: 5 })),
+        username: t.Optional(t.String({ minLength: 5 })),
+      }),
+      detail: {
+        tags: ["user"],
+        description: "Edit user profile details",
+      },
+    }
+  )
   .delete(
     "/delete-account",
     async ({ set, id, cookie: { token } }: AuthContext) => {

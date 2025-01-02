@@ -17,22 +17,38 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, AlertCircle } from "lucide-react";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
 
 export default function EditUserPage() {
   const router = useRouter();
   const { toast } = useToast();
 
   const user = useAuthStore((state) => state.user);
+  const setCookie = useAuthStore((state) => state.setCookie);
+  const initializeAuth = useAuthStore((state) => state.initializeAuth);
+
   const [userDetails, setUserDetails] = useState({
     name: "",
-    email: "",
     username: "",
   });
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [loadingUpdate, setLoadingUpdate] = useState<boolean>(false);
 
+  // Fetch user details on mount
   useEffect(() => {
     if (!user) return;
     const getUserDetails = async () => {
@@ -49,28 +65,43 @@ export default function EditUserPage() {
         .catch((error) => {
           setError(error);
           console.error(error);
-        });
+        })
+        .finally(() => setLoading(false));
     };
     getUserDetails();
   }, [user]);
 
-  const handleUpdateUser = async () => {
-    setLoading(true);
+  // Update user details
+  const formSchema = z.object({
+    name: z.preprocess(
+      (val) => (typeof val === "string" && val.trim() === "" ? undefined : val),
+      z.string().min(5, "Name must be at least 5 characters").optional()
+    ),
+    username: z.preprocess(
+      (val) => (typeof val === "string" && val.trim() === "" ? undefined : val),
+      z.string().min(5, "Username must be at least 5 characters").optional()
+    ),
+  });
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      username: "",
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setLoadingUpdate(true);
     eden.user["edit-profile"]
-      .post({
-        id: user.id,
-        email: userDetails.email,
-        name: userDetails.name,
-        username: userDetails.username,
-      })
+      .post(values)
       .then((response) => {
         if (response.status !== 200) {
-          toast({
-            title: "Error",
-            description: response.error.value,
-          });
+          setError(response.error.value);
           console.error(response.error.value);
         } else {
+          setCookie("authCookie", response.data.authCookie);
+          initializeAuth();
           toast({
             title: "Success",
             description: "User details updated successfully",
@@ -79,14 +110,11 @@ export default function EditUserPage() {
         }
       })
       .catch((error) => {
-        toast({
-          title: "Error",
-          description: error,
-        });
+        setError(error.message || "An unknown error occurred");
         console.error(error);
       })
-      .finally(() => setLoading(false));
-  };
+      .finally(() => setLoadingUpdate(false));
+  }
 
   return (
     <div>
@@ -130,45 +158,68 @@ export default function EditUserPage() {
         <Card>
           <CardHeader>
             <CardTitle>Edit User Details</CardTitle>
+            <CardDescription>
+              Here you may edit your name and username.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <CardDescription>
-              Here you can edit your user details.
-            </CardDescription>
-          </CardContent>
-          <CardContent>
-            <div>
-              <label>Name</label>
-              <Input
-                value={userDetails.name}
-                onChange={(e) =>
-                  setUserDetails({ ...userDetails, name: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <label>Email</label>
-              <Input
-                value={userDetails.email}
-                onChange={(e) =>
-                  setUserDetails({ ...userDetails, email: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <label>Username</label>
-              <Input
-                value={userDetails.username}
-                onChange={(e) =>
-                  setUserDetails({ ...userDetails, username: e.target.value })
-                }
-              />
-            </div>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
+                <FormField
+                  control={form.control}
+                  name={"name"}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder={userDetails.name} {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Must be between 5 and 50 characters
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={"username"}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <Input placeholder={userDetails.username} {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Must be between 5 and 50 characters
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="space-x-2">
+                  <Button type="submit" disabled={loadingUpdate || loading}>
+                    {loadingUpdate && <Loader2 className="animate-spin" />}
+                    Submit
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={"outline"}
+                    onClick={() => router.push("/user")}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </Form>
           </CardContent>
           <CardFooter>
-            <Button onClick={handleUpdateUser} disabled={loading}>
-              {loading ? "Updating..." : "Update"}
-            </Button>
+            <CardDescription>
+              You may change just one of the fields by leaving the other blank.
+            </CardDescription>
           </CardFooter>
         </Card>
       )}

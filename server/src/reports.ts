@@ -380,4 +380,23 @@ export const reports = new Elysia({ prefix: "/reports" })
         description: "Downvote a report based on its ID",
       },
     }
+  )
+  .post(
+    "/get-map-report-info",
+    async ({ set }) => {
+      try {
+        const reports = await sql.getReportsMap();
+        set.status = 200;
+        return reports;
+      }
+      catch (error) {
+        set.status = 500;
+        return { error : "Unknown error occurred"};
+      }
+    },
+    {detail:{
+      tags: ["reports"],
+      description : "Get report information for map"
+      },
+    }
   );

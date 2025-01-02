@@ -46,6 +46,8 @@ const MapWithRivers: React.FC = () => {
   const wfsLayerGroupRef = useRef<L.MarkerClusterGroup | null>(null);
   const overlaysRef = useRef<{ [key: string]: L.Layer }>({});
   const layerControlRef = useRef<L.Control.Layers | null>(null);
+  //constant for reports
+  const [reports, setReports] = useState<any[]>([]);
   //constant legend
   const legendRef = useRef<L.Control | null>(null)
 
@@ -274,6 +276,27 @@ const MapWithRivers: React.FC = () => {
 
       legendRef.current = legend; 
       legend.addTo(map.current); 
+      
+      //Reports
+      useEffect(()=> {
+        const fetchReports = async () => {
+          try {
+            const response = await fetch('/api/reports/get-map-report-info');
+            const data = await response.json();
+          } catch (error) {
+            console.error("Error fetching reports:", error);
+          }
+        };
+        fetchReports();
+      }, []);
+
+      useEffect(() => {
+        reports.forEach((report)=> {
+          const marker = L.marker([report.latitude, report.longitude], { icon: Icon })
+          .bindPopup('<h3>${report.title}</h3><p>${report.description}</p>');
+          marker.addTo(map.current);
+        });
+      }, [reports, map.current])
 
 
       // Add overlays to the map

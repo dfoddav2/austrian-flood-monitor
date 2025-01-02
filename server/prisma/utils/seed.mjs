@@ -15,6 +15,7 @@ async function main() {
           username: "adminuser",
           password: "password123", // Ensure to hash passwords in a real application
           userRole: "ADMIN",
+          verified: true,
         },
         {
           id: "responder_id_1",
@@ -23,6 +24,7 @@ async function main() {
           username: "responderuser",
           password: "password123", // Ensure to hash passwords in a real application
           userRole: "RESPONDER",
+          verified: true,
         },
         {
           id: "user_id_1",

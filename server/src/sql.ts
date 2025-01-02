@@ -109,6 +109,47 @@ export async function deleteUser(id: string): Promise<void> {
   });
 }
 
+export async function updateUser(
+  id: string,
+  updates: { name?: string; username?: string }
+): Promise<User> {
+  const user = await prisma.user.findUnique({
+    where: { id },
+    select: { id: true, name: true, username: true },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  if (updates.username) {
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        username: updates.username,
+      },
+    });
+    if (existingUser) {
+      throw new Error("User with username already exists");
+    }
+  }
+
+  const updateData: Partial<{ name: string; username: string }> = {};
+
+  if (updates.name) updateData.name = updates.name;
+  if (updates.username) updateData.username = updates.username;
+
+  try {
+    const updatedUser = prisma.user.update({
+      where: { id },
+      data: updateData,
+    });
+    return updatedUser;
+  } catch (error) {
+    console.error("Error updating user", error);
+    throw error;
+  }
+}
+
 export async function checkCredentials({
   email,
   password,
@@ -296,24 +337,41 @@ export async function getReportById(
 }
 
 export async function getReportsAssociatedWithUser(authorId: string) {
-  const user = await prisma.user.findUnique({
-    where: {
-      id: authorId,
-    },
-    select: {
-      id: true,
-    },
-  });
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: authorId,
+      },
+      select: {
+        id: true,
+      },
+    });
 
-  if (!user) {
-    throw new Error("User not found");
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    console.log("User found:", user);
+    console.log("Getting reports associated with user:", authorId);
+
+    const reports = await prisma.report.findMany({
+      where: {
+        authorId: authorId,
+      },
+      select: {
+        id: true,
+        title: true,
+        createdAt: true,
+        upvotes: true,
+        downvotes: true,
+      },
+    });
+
+    console.log("Reports associated with user:", reports);
+    return reports;
+  } catch (error) {
+    throw error;
   }
-
-  return await prisma.report.findMany({
-    where: {
-      authorId,
-    },
-  });
 }
 
 export async function createReport(

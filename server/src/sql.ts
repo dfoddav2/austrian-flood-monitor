@@ -315,24 +315,41 @@ export async function getReportById(
 }
 
 export async function getReportsAssociatedWithUser(authorId: string) {
-  const user = await prisma.user.findUnique({
-    where: {
-      id: authorId,
-    },
-    select: {
-      id: true,
-    },
-  });
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: authorId,
+      },
+      select: {
+        id: true,
+      },
+    });
 
-  if (!user) {
-    throw new Error("User not found");
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    console.log("User found:", user);
+    console.log("Getting reports associated with user:", authorId);
+
+    const reports = await prisma.report.findMany({
+      where: {
+        authorId: authorId,
+      },
+      select: {
+        id: true,
+        title: true,
+        createdAt: true,
+        upvotes: true,
+        downvotes: true,
+      },
+    });
+
+    console.log("Reports associated with user:", reports);
+    return reports;
+  } catch (error) {
+    throw error;
   }
-
-  return await prisma.report.findMany({
-    where: {
-      authorId,
-    },
-  });
 }
 
 export async function createReport(

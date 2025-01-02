@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
 
 import { sql } from "@server/sql";
-import { AuthContextWithBody } from "@utils/types";
+import { AuthContext, AuthContextWithBody } from "@utils/types";
 // import { AuthContextWithBody, RegisterBody, LoginBody } from "@utils/types";
 
 export const reports = new Elysia({ prefix: "/reports" })
@@ -55,11 +55,19 @@ export const reports = new Elysia({ prefix: "/reports" })
   )
   .post(
     "/reports-by-author-id",
-    async ({ set, body: { authorId } }) => {
+    async ({
+      set,
+      body: { authorId },
+    }: AuthContextWithBody<{ authorId: string }>) => {
+      if (!authorId) {
+        set.status = 400; // Unauthorized
+        return { error: "No user ID given" };
+      }
+
       try {
-        const report = await sql.getReportsAssociatedWithUser(authorId);
+        const reports = await sql.getReportsAssociatedWithUser(authorId);
         set.status = 200;
-        return report;
+        return reports;
       } catch (error) {
         if (error instanceof Error) {
           if (error.message.includes("not found")) {

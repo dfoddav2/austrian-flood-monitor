@@ -58,6 +58,7 @@ interface Report {
   downvotes: number;
   upvotedByUser: boolean;
   downvotedByUser: boolean;
+  createdAt: string;
 }
 
 const ReportPage = () => {
@@ -327,6 +328,16 @@ const ReportPage = () => {
               <CardDescription>
                 <p className="font-bold">Description:</p>
                 <p>{report.description}</p>
+                <p>
+                  {" "}
+                  {new Date(report.createdAt).toLocaleString(undefined, {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
               </CardDescription>
               {report.images.length > 0 && (
                 <Carousel className="mx-8 mt-5">

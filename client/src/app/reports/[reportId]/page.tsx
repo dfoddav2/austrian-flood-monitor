@@ -40,8 +40,22 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThumbsUp, ThumbsDown } from "lucide-react";
 import { CldImage } from "next-cloudinary";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 import dynamic from "next/dynamic";
+import { Textarea } from "@/components/ui/textarea";
 const Map = dynamic(() => import("@/components/map"), {
   ssr: false,
 });
@@ -54,6 +68,13 @@ interface Report {
   latitude: number;
   longitude: number;
   images: { id: string; source: string; description: string }[];
+  comments: {
+    id: string;
+    userId: string;
+    user: { username: string };
+    content: string;
+    timestamp: string;
+  }[];
   upvotes: number;
   downvotes: number;
   upvotedByUser: boolean;
@@ -63,6 +84,8 @@ interface Report {
 
 const ReportPage = () => {
   const router = useRouter();
+  const { toast } = useToast();
+
   const user = useAuthStore((state) => state.user);
   console.log("user", user);
 
@@ -73,7 +96,9 @@ const ReportPage = () => {
   const [loadingUpvote, setLoadingUpvote] = useState<boolean>(false);
   const [loadingDownvote, setLoadingDownvote] = useState<boolean>(false);
   const [loadingDelete, setLoadingDelete] = useState<boolean>(false);
+  const [loadingComment, setLoadingComment] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!reportId) {
@@ -201,6 +226,70 @@ const ReportPage = () => {
       });
   };
 
+  const handleNewComment = async (data: z.infer<typeof FormSchema>) => {
+    if (!report) {
+      return;
+    }
+
+    setLoadingComment(true);
+    console.log("Creating new comment with content:", data.comment);
+    eden.reports["comment-on-report"]
+      .post({ reportId: report.id, content: data.comment })
+      .then((response) => {
+        if (response.status === 201) {
+          toast({
+            title: "Success",
+            description: "Comment added successfully",
+          });
+          setReport((prevReport) => {
+            if (prevReport) {
+              return {
+                ...prevReport,
+                comments: [
+                  ...prevReport.comments,
+                  {
+                    id: response.data.id,
+                    userId: user?.id || "unknown",
+                    user: { username: user?.username || "Unknown" },
+                    content: data.comment,
+                    timestamp: response.data.timestamp,
+                  },
+                ],
+              };
+            }
+            return prevReport;
+          });
+          form.reset();
+          setIsCommentDialogOpen(false);
+        } else {
+          setError(response.error.value.error);
+          console.error(response.error.value.error);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        setError("Something went wrong");
+      })
+      .finally(() => {
+        setLoadingComment(false);
+      });
+  };
+
+  const FormSchema = z.object({
+    comment: z
+      .string()
+      .min(10, {
+        message: "Comment must be at least 10 characters long.",
+      })
+      .max(200, {
+        message: "Comment must not be larger than 200 characters.",
+      }),
+  });
+
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+  });
+
   return (
     <div>
       {error && (
@@ -252,7 +341,7 @@ const ReportPage = () => {
                       <AlertDialogTrigger asChild>
                         <Button variant="destructive">Delete report</Button>
                       </AlertDialogTrigger>
-                      <AlertDialogContent>
+                      <AlertDialogContent className="z-50">
                         <AlertDialogHeader>
                           <AlertDialogTitle>
                             Are you absolutely sure?
@@ -399,6 +488,99 @@ const ReportPage = () => {
           </>
         )}
       </Card>
+      {(user?.userRole === "RESPONDER" ||
+        user?.userRole === "ADMIN" ||
+        user?.id === report?.authorId) && (
+        <Card className="max-w-2xl mt-5 relative">
+          <CardHeader>
+            <CardTitle>Comments</CardTitle>
+          </CardHeader>
+          <CardContent className="mt-5">
+            {report?.comments?.map((comment) => (
+              <Card
+                key={comment.id}
+                className={`mb-4 ${
+                  comment.userId === user?.id
+                    ? "bg-slate-200 dark:bg-slate-800"
+                    : ""
+                }`}
+              >
+                <CardHeader>
+                  <CardTitle>{comment.user.username}</CardTitle>
+                  <CardDescription>
+                    {" "}
+                    {new Date(comment.timestamp).toLocaleString(undefined, {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p>{comment.content}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </CardContent>
+          <div className="absolute top-5 right-5 flex gap-2 items-center">
+            <AlertDialog open={isCommentDialogOpen} onOpenChange={setIsCommentDialogOpen}>
+              <AlertDialogTrigger asChild>
+                <Button
+                  aria-label="Comment"
+                  onClick={() => setIsCommentDialogOpen(true)}
+                >
+                  Comment
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Comment on this report</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Here you can give additional information or ask questions
+                    regarding the report.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(handleNewComment)}>
+                    <FormField
+                      control={form.control}
+                      name="comment"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Comment</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Write your comment here"
+                              {...field}
+                              rows={3}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Must be between 10 and 200 characters
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <Button
+                        type="submit" // Set type to submit
+                        disabled={loadingComment}
+                      >
+                        {loadingComment && <Loader2 className="animate-spin" />}
+                        Continue
+                      </Button>
+                    </AlertDialogFooter>
+                  </form>
+                </Form>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </Card>
+      )}
     </div>
   );
 };

@@ -1,9 +1,18 @@
-import { Elysia, t } from "elysia";
+import { Elysia } from "elysia";
 
 import { sql } from "@server/sql";
-import { panic } from "@utils/panic";
+import { authMiddleware } from "@utils/middleware";
 
 export const admin = new Elysia({ prefix: "/admin" })
+  .onBeforeHandle(async (context) => {
+    return await authMiddleware(
+      {
+        set: context.set,
+        id: context.id,
+      },
+      { requireAdmin: true }
+    );
+  })
   .get(
     "/test",
     async ({ set }) => {

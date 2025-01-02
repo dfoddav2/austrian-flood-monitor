@@ -74,7 +74,7 @@ All you have to worry about in this directory is the `src` and `prisma` director
 - Make changes to the table definitions inside `./prisma/schema.prisma`, if you need custom change that Prisma can not provide, you can make changes directly to SQL migrations.
 - Once you have made changes you have to migrate them with: 
     ```sh
-    DATABASE_URL=postgres://postgres:your-super-secret-and-long-postgres-password@localhost:5432/postgres npx prisma migrate dev
+    DIRECT_URL=postgres://postgres:your-super-secret-and-long-postgres-password@localhost:5432/postgres npx prisma migrate dev
     ```
 - Make sure to also update the prepopulated data inside `./prisma/utils/seed.mjs` to fit the new schema.
 

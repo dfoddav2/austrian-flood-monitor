@@ -55,33 +55,38 @@ const app = new Elysia()
     })
   )
   .resolve(async ({ jwt, cookie }) => {
-    console.log("Resolve middleware executed"); // Global logging
+    // console.log("Resolve middleware executed"); // Global logging
 
     interface Token {
       id: string;
       expiry: number;
       userRole: string;
       email: string;
+      expiry: number;
     }
-    let token: Token | null = null;
+    let token: Token | { id: string; expiry: string } | null = null;
 
-    console.log("Cookies:", cookie);
+    // console.log("Cookies:", cookie);
     if (cookie.token && cookie.token.value !== undefined) {
       try {
-        console.info("Verifying JWT token:", cookie.token.value);
+        // console.info("Verifying JWT token:", cookie.token.value);
         const verifiedToken = (await jwt.verify(cookie.token.value)) as unknown;
-        console.log("Verified token:", verifiedToken);
+        // console.log("Verified token:", verifiedToken);
         if (
           verifiedToken &&
           typeof verifiedToken === "object" &&
-          "id" in verifiedToken
+          "id" in verifiedToken &&
+          // "userRole" in verifiedToken &&
+          // "email" in verifiedToken &&
+          "expiry" in verifiedToken
         ) {
+          const validToken = verifiedToken as Token;
           // TODO: Handle expiry and refreshing of tokens
-          if ((verifiedToken as Token).expiry < Date.now()) {
+          if (validToken.expiry && validToken.expiry < Date.now()) {
             console.warn("JWT token has expired.");
           }
-          token = verifiedToken as Token;
-          console.log("Successfully verified token ID:", token.id);
+          token = validToken;
+          // console.log("Successfully verified token ID:", token.id);
         } else {
           console.warn("JWT verification failed or returned an invalid token.");
         }
@@ -89,7 +94,7 @@ const app = new Elysia()
         console.error("Failed to verify JWT token:", error);
       }
     } else {
-      console.warn("No JWT token found in cookies.");
+      // console.warn("No JWT token found in cookies.");
     }
 
     return { id: token ? token.id : null };

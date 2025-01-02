@@ -37,6 +37,7 @@ model User {
   reports Report[]
   upvotedReports Report[] @relation("UpvotedReports")
   downvotedReports Report[] @relation("DownvotedReports")
+  comments Comment[]
 }
 
 model Report {
@@ -58,6 +59,20 @@ model Report {
   latitude Float
   longitude Float
   images Image[]
+  comments Comment[]
+}
+
+model Comment {
+  // Meta
+  id String @id @unique @default(cuid())
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  reportId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  // Content
+  content String
+  timestamp DateTime @default(now())
 }
 
 model Image {

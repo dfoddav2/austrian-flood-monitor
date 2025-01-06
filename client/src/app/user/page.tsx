@@ -57,6 +57,8 @@ export default function UserPage() {
   const [associatedReports, setAssociatedReports] = useState<
     AssociatedReport[] | null
   >(null);
+  const [totalScore, setTotalScore] = useState<number>(0);
+
   const [error, setError] = useState<string | null>(null);
   const [loadingDelete, setLoadingDelete] = useState<boolean>(false);
 
@@ -93,6 +95,13 @@ export default function UserPage() {
           } else {
             console.log("Reports associated with user:", response.data);
             setAssociatedReports(response.data);
+            setTotalScore(
+              response.data.reduce(
+                (acc: number, report: AssociatedReport) =>
+                  acc + report.upvotes - report.downvotes,
+                0
+              )
+            );
           }
         })
         .catch((error) => {
@@ -222,6 +231,7 @@ export default function UserPage() {
                   <p>Email: {userDetails.email}</p>
                   <p>Name: {userDetails.name}</p>
                   <p>Verified: {userDetails.verified ? "True" : "False"}</p>
+                  <strong>Total score: {totalScore}</strong>
                 </CardDescription>
               </CardContent>
               <CardContent>

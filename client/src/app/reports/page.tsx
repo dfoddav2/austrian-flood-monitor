@@ -347,7 +347,7 @@ export default function ReportsPage() {
       <CardContent>
         {loading ? (
           [...Array(pageSize)].map((_, i) => (
-            <Skeleton key={i} className="w-96 h-40 rounded-lg mt-5" />
+            <Skeleton key={i} className="w-52 h-20 rounded-lg mt-2" />
           ))
         ) : !loading && reports ? (
           <div className="flex flex-col gap-5">

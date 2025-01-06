@@ -228,7 +228,7 @@ export const reports = new Elysia({ prefix: "/reports" })
     }
   )
   .post(
-    "edit-report",
+    "/edit-report",
     async ({
       set,
       id,
@@ -292,7 +292,7 @@ export const reports = new Elysia({ prefix: "/reports" })
     }
   )
   .post(
-    "upvote-report",
+    "/upvote-report",
     async ({
       set,
       id,
@@ -339,7 +339,7 @@ export const reports = new Elysia({ prefix: "/reports" })
     }
   )
   .post(
-    "downvote-report",
+    "/downvote-report",
     async ({
       set,
       id,
@@ -385,7 +385,7 @@ export const reports = new Elysia({ prefix: "/reports" })
     }
   )
   .post(
-    "comment-on-report",
+    "/comment-on-report",
     async ({
       set,
       body,

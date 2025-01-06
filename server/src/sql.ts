@@ -1,14 +1,71 @@
 import { Prisma, User, UserRole } from "@prisma/client";
 import { prisma } from "@server/prisma";
 
-// TODO: Change this so it only fetches the necessary fields
-export async function getAllUsers(): Promise<User[]> {
-  return await prisma.user.findMany();
+export type UserWithAggregates = Omit<User, "password"> & {
+  _count: {
+    reports: number;
+  };
+  reports: {
+    _sum: {
+      upvotes: number;
+      downvotes: number;
+    };
+  };
+};
+
+export async function getAllUsers(): Promise<Omit<User, "password">[]> {
+  const users = await prisma.user.findMany({
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      username: true,
+      userRole: true,
+      verified: true,
+      _count: {
+        select: { reports: true },
+      },
+    },
+  });
+
+  const reportAggregates = await prisma.report.groupBy({
+    by: ["authorId"],
+    _sum: {
+      upvotes: true,
+      downvotes: true,
+    },
+  });
+
+  const usersWithAggregates: UserWithAggregates[] = users.map((user) => {
+    const aggregate = reportAggregates.find((agg) => agg.authorId === user.id);
+
+    return {
+      ...user,
+      reports: {
+        _sum: {
+          upvotes: aggregate?._sum.upvotes ?? 0,
+          downvotes: aggregate?._sum.downvotes ?? 0,
+        },
+      },
+    };
+  });
+
+  return usersWithAggregates;
 }
 
-export async function getUserById(id: string): Promise<User | null> {
+export async function getUserById(
+  id: string
+): Promise<Omit<User, "password"> | null> {
   const user = await prisma.user.findUnique({
     where: { id },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      username: true,
+      userRole: true,
+      verified: true,
+    },
   });
 
   if (!user) {
@@ -92,7 +149,50 @@ export async function verifyEmail(
   });
 }
 
+export async function manuallyVerifyEmail(userId: string): Promise<void> {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      id: true,
+      verified: true,
+    },
+  });
+  if (!user) {
+    throw new Error("User not found");
+  }
+  if (user.verified) {
+    throw new Error("User already verified");
+  }
+  await prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      verified: true,
+    },
+  });
+}
+
 export async function deleteUser(id: string): Promise<void> {
+  const user = await prisma.user.findUnique({
+    where: {
+      id,
+    },
+  });
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  await prisma.user.delete({
+    where: {
+      id,
+    },
+  });
+}
+
+export async function deleteUserAdmin(id: string): Promise<void> {
   const user = await prisma.user.findUnique({
     where: {
       id,
@@ -590,6 +690,31 @@ export async function createComment(
       userId,
       reportId,
       content,
+    },
+  });
+}
+
+export async function makeResponder(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+  if (!user) {
+    throw new Error("User not found");
+  }
+  if (user.userRole === UserRole.RESPONDER) {
+    throw new Error("User is already a responder");
+  }
+  if (user.userRole === UserRole.ADMIN) {
+    throw new Error("Cannot change an admin to a responder");
+  }
+  return await prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      userRole: UserRole.RESPONDER,
     },
   });
 }

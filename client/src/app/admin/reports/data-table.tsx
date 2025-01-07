@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateRange } from "react-day-picker";
+import { DatePickerWithRange } from "./DatePickerWithRange";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -35,6 +37,7 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   const table = useReactTable({
     data,
@@ -51,6 +54,13 @@ export function DataTable<TData, TValue>({
     },
   });
 
+  // Whenever dateRange changes, update the filter for createdAt.
+  // "createdAt" here must match the accessorKey in your columns.
+  const handleDateFilterChange = (range: DateRange | undefined) => {
+    setDateRange(range);
+    table.getColumn("createdAt")?.setFilterValue(range);
+  };
+
   return (
     <div>
       <div className="flex items-center py-4 space-x-4">
@@ -60,6 +70,11 @@ export function DataTable<TData, TValue>({
           onChange={(event) =>
             table.getColumn("author")?.setFilterValue(event.target.value)
           }
+        />
+        <DatePickerWithRange
+          className="max-w-sm"
+          value={dateRange}
+          onChange={handleDateFilterChange} // pass a callback
         />
       </div>
       <div className="rounded-md border">

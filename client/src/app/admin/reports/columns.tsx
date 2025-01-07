@@ -111,6 +111,22 @@ export const getColumns = (
       const dateB = new Date(rowB.getValue(columnId));
       return dateA.getTime() - dateB.getTime();
     },
+    filterFn: (row, id, filterValue) => {
+      if (!filterValue) {
+        return true;
+      }
+      const { from, to } = filterValue;
+      if (!from || !to) {
+        return true;
+      }
+    
+      // Shift the "to" date to the end of that day.
+      const endOfDay = new Date(to);
+      endOfDay.setHours(23, 59, 59, 999);
+    
+      const rowDate = new Date(row.getValue<string>(id));
+      return rowDate >= from && rowDate <= endOfDay;
+    },
   },
   {
     accessorKey: "upvotes",

@@ -300,6 +300,17 @@ export async function checkCredentials({
   }
 }
 
+interface GetReportsParams {
+  page: number;
+  pageSize: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  userLatitude?: number;
+  userLongitude?: number;
+  fromDate?: Date; // ← Add these
+  toDate?: Date;   // ← Add these
+}
+
 export async function getReports({
   page,
   pageSize,
@@ -307,85 +318,90 @@ export async function getReports({
   sortOrder,
   userLatitude,
   userLongitude,
-}: {
-  page: number;
-  pageSize: number;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-  userLatitude?: number;
-  userLongitude?: number;
-}) {
+  fromDate,
+  toDate,
+}: GetReportsParams) {
   const skip = (page - 1) * pageSize;
   const take = pageSize;
 
-  let orderBy: any = {};
+  // Build a base where clause to handle optional from/to dates
+  const where: any = {};
+  if (fromDate && toDate) {
+    // Include "createdAt" between fromDate and toDate
+    where.createdAt = {
+      gte: fromDate,
+      lte: toDate,
+    };
+  } else if (fromDate) {
+    where.createdAt = { gte: fromDate };
+  } else if (toDate) {
+    where.createdAt = { lte: toDate };
+  }
 
-  if (
-    sortBy === "distance" &&
-    userLatitude !== undefined &&
-    userLongitude !== undefined
-  ) {
-    console.log(
-      "Sorting by distance to user location",
-      userLatitude,
-      userLongitude
-    );
+  // Handle special 'distance' sorting first
+  if (sortBy === "distance" && userLatitude !== undefined && userLongitude !== undefined) {
     const validSortOrder = sortOrder === "desc" ? "DESC" : "ASC";
 
-    // Calculate distance using the Haversine formula
-    const reports = await prisma.$queryRaw<Report[]>`
-    SELECT *, (
-      6371 * acos(
-        cos(radians(${userLatitude}))
-        * cos(radians("latitude"))
-        * cos(radians("longitude") - radians(${userLongitude}))
-        + sin(radians(${userLatitude})) * sin(radians("latitude"))
-      )
-    ) AS "distance"
-    FROM "Report"
-    ORDER BY "distance" ${Prisma.raw(validSortOrder)}
-    OFFSET ${skip}
-    LIMIT ${take};
-  `;
+    // Convert fromDate/toDate to SQL if provided
+    // (Adjust syntax to your DB if different)
+    const dateFilterSQL = `
+      ${fromDate ? `AND "createdAt" >= ${prisma.$queryRaw`\`${fromDate.toISOString()}\``}` : ""}
+      ${toDate ? `AND "createdAt" <= ${prisma.$queryRaw`\`${toDate.toISOString()}\``}` : ""}
+    `;
 
-    const totalReports = await prisma.report.count();
+    // Calculate distance using the Haversine formula, then filter + sort
+    const reports = await prisma.$queryRaw<any[]>`
+      SELECT *,
+      (
+        6371 * acos(
+          cos(radians(${userLatitude}))
+          * cos(radians("latitude"))
+          * cos(radians("longitude") - radians(${userLongitude}))
+          + sin(radians(${userLatitude})) * sin(radians("latitude"))
+        )
+      ) AS "distance"
+      FROM "Report"
+      WHERE 1=1 
+        ${prisma.$unsafe(dateFilterSQL)} -- Insert any date constraints
+      ORDER BY "distance" ${prisma.$unsafe(validSortOrder)}
+      OFFSET ${skip}
+      LIMIT ${take};
+    `;
 
-    return {
-      reports,
-      totalReports,
-    };
-  } else if (sortBy === "createdAt") {
+    const totalReports = await prisma.report.count({
+      where, // Leverage Prisma’s count for more accurate filtering if you want
+    });
+
+    return { reports, totalReports };
+  }
+
+  // Otherwise, we rely on Prisma’s standard ordering + where
+  let orderBy: any = {};
+  if (sortBy === "createdAt") {
     orderBy = { createdAt: sortOrder || "desc" };
   } else if (sortBy === "score") {
-    // For sorting by score, we need to calculate 'upvotes - downvotes'
+    // Example: upvotes - downvotes (not natively supported),
+    // so approximate it with multiple order clauses.
     orderBy = [
-      {
-        upvotes: sortOrder || "desc",
-      },
-      {
-        downvotes: sortOrder === "asc" ? "desc" : "asc",
-      },
+      { upvotes: sortOrder || "desc" },
+      { downvotes: sortOrder === "asc" ? "desc" : "asc" },
     ];
   } else {
-    // Default sorting
     orderBy = { createdAt: "desc" };
   }
 
   const reports = await prisma.report.findMany({
     skip,
     take,
+    where,         // ← Apply your date-range filter here
     orderBy,
     include: {
       images: true,
     },
   });
 
-  const totalReports = await prisma.report.count();
-
-  return {
-    reports,
-    totalReports,
-  };
+  const totalReports = await prisma.report.count({ where });
+  return { reports, totalReports };
 }
 
 export async function getReportById(

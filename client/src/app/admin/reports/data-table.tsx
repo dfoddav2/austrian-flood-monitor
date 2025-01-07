@@ -24,7 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateRange } from "react-day-picker";
-import { DatePickerWithRange } from "./DatePickerWithRange";
+import { DatePickerWithRange } from "@/components/ui/DatePickerWithRange";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];

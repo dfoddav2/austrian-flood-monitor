@@ -427,6 +427,9 @@ const ReportPage = () => {
                     minute: "2-digit",
                   })}
                 </p>
+                <Button asChild variant="outline" className="mt-2">
+                  <Link href={"/user/" + report.authorId}>To author</Link>
+                </Button>
               </CardDescription>
               {report.images.length > 0 && (
                 <Carousel className="mx-8 mt-5">
@@ -506,7 +509,11 @@ const ReportPage = () => {
                 }`}
               >
                 <CardHeader>
-                  <CardTitle>{comment.user.username}</CardTitle>
+                  <CardTitle>
+                    <Link href={"/user/" + comment.userId}>
+                      {comment.user.username}
+                    </Link>
+                  </CardTitle>
                   <CardDescription>
                     {" "}
                     {new Date(comment.timestamp).toLocaleString(undefined, {
@@ -525,7 +532,10 @@ const ReportPage = () => {
             ))}
           </CardContent>
           <div className="absolute top-5 right-5 flex gap-2 items-center">
-            <AlertDialog open={isCommentDialogOpen} onOpenChange={setIsCommentDialogOpen}>
+            <AlertDialog
+              open={isCommentDialogOpen}
+              onOpenChange={setIsCommentDialogOpen}
+            >
               <AlertDialogTrigger asChild>
                 <Button
                   aria-label="Comment"

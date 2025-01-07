@@ -43,6 +43,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, CircleCheck, Loader2, ArrowDownUp } from "lucide-react";
 
+import { DateRange } from "react-day-picker";
+import { DatePickerWithRange } from "@/components/ui/DatePickerWithRange";
+
 import dynamic from "next/dynamic";
 const Map = dynamic(() => import("@/components/map"), {
   ssr: false,
@@ -71,6 +74,7 @@ export default function ReportsPage() {
   const [userLongitude, setUserLongitude] = useState<number | null>(null);
   const [loadingLocation, setLoadingLocation] = useState<boolean>(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   const user = useAuthStore((state) => state.user);
 
@@ -133,6 +137,8 @@ export default function ReportsPage() {
         sortOrder: string;
         userLatitude?: number;
         userLongitude?: number;
+        fromDate?: string;
+        toDate?: string;
       } = {
         page: currentPage,
         pageSize: pageSize,
@@ -145,6 +151,10 @@ export default function ReportsPage() {
         requestData.userLatitude = userLatitude;
         requestData.userLongitude = userLongitude;
       }
+
+      // If a date range is set, pass in fromDate and toDate
+      if (dateRange?.from) requestData.fromDate = dateRange.from.toISOString();
+      if (dateRange?.to) requestData.toDate = dateRange.to.toISOString();
 
       eden.reports["get-reports"]
         .post(requestData)
@@ -167,7 +177,15 @@ export default function ReportsPage() {
     };
 
     fetchReports();
-  }, [currentPage, sortBy, sortOrder, pageSize, userLatitude, userLongitude]);
+  }, [
+    currentPage,
+    sortBy,
+    sortOrder,
+    pageSize,
+    userLatitude,
+    userLongitude,
+    dateRange,
+  ]);
 
   return (
     <Card className="relative">
@@ -182,7 +200,7 @@ export default function ReportsPage() {
       <CardHeader>
         <CardTitle>Reports</CardTitle>
         <CardDescription>View all reports</CardDescription>
-        <div>
+        <div className="flex gap-4">
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="outline">
@@ -342,17 +360,24 @@ export default function ReportsPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          <DatePickerWithRange
+            value={dateRange}
+            onChange={(range) => {
+              setCurrentPage(1); // reset to page 1
+              setDateRange(range);
+            }}
+          />
         </div>
       </CardHeader>
       <CardContent>
         {loading ? (
           [...Array(pageSize)].map((_, i) => (
-            <Skeleton key={i} className="w-96 h-40 rounded-lg mt-5" />
+            <Skeleton key={i} className="w-52 h-20 rounded-lg mt-2" />
           ))
         ) : !loading && reports ? (
           <div className="flex flex-col gap-5">
             {reports.map((report: Report) => (
-              <Card key={report.id} className="relative max-w-96">
+              <Card key={report.id} className="relative w-full">
                 <div className="absolute top-5 right-5">
                   <p>
                     Score:{" "}

@@ -2,7 +2,6 @@ import { Elysia, t } from "elysia";
 
 import { sql } from "@server/sql";
 import { AuthContext, AuthContextWithBody } from "@utils/types";
-// import { AuthContextWithBody, RegisterBody, LoginBody } from "@utils/types";
 
 export const reports = new Elysia({ prefix: "/reports" })
   .post(
@@ -16,12 +15,22 @@ export const reports = new Elysia({ prefix: "/reports" })
         sortOrder,
         userLatitude,
         userLongitude,
+        fromDate,
+        toDate,
       },
     }) => {
       try {
         // Validate and cast sortOrder
         const validSortOrder: "asc" | "desc" | undefined =
           sortOrder === "asc" || sortOrder === "desc" ? sortOrder : undefined;
+
+        const parsedFromDate = fromDate ? new Date(fromDate) : undefined;
+        const parsedToDate = toDate ? new Date(toDate) : undefined;
+
+        // Adjust toDate to end-of-day if provided
+        if (parsedToDate) {
+          parsedToDate.setHours(23, 59, 59, 999);
+        }
 
         const reports = await sql.getReports({
           page: Number(page),
@@ -30,6 +39,8 @@ export const reports = new Elysia({ prefix: "/reports" })
           sortOrder: validSortOrder,
           userLatitude: userLatitude ? Number(userLatitude) : undefined,
           userLongitude: userLongitude ? Number(userLongitude) : undefined,
+          fromDate: parsedFromDate,
+          toDate: parsedToDate,
         });
         set.status = 200;
         return reports;
@@ -46,6 +57,8 @@ export const reports = new Elysia({ prefix: "/reports" })
         sortOrder: t.Optional(t.String()),
         userLatitude: t.Optional(t.Number()),
         userLongitude: t.Optional(t.Number()),
+        fromDate: t.Optional(t.String()),
+        toDate: t.Optional(t.String()),
       }),
       detail: {
         tags: ["reports"],
@@ -204,7 +217,7 @@ export const reports = new Elysia({ prefix: "/reports" })
           if (error.message.includes("not found")) {
             set.status = 404; // Not Found
             return { error: error.message };
-          } else if (error.message.includes("author")) {
+          } else if (error.message.includes("authorized")) {
             set.status = 403; // Forbidden
             return { error: error.message };
           } else {
@@ -228,7 +241,7 @@ export const reports = new Elysia({ prefix: "/reports" })
     }
   )
   .post(
-    "edit-report",
+    "/edit-report",
     async ({
       set,
       id,
@@ -292,7 +305,7 @@ export const reports = new Elysia({ prefix: "/reports" })
     }
   )
   .post(
-    "upvote-report",
+    "/upvote-report",
     async ({
       set,
       id,
@@ -339,7 +352,7 @@ export const reports = new Elysia({ prefix: "/reports" })
     }
   )
   .post(
-    "downvote-report",
+    "/downvote-report",
     async ({
       set,
       id,
@@ -385,7 +398,7 @@ export const reports = new Elysia({ prefix: "/reports" })
     }
   )
   .post(
-    "comment-on-report",
+    "/comment-on-report",
     async ({
       set,
       body,
@@ -424,7 +437,8 @@ export const reports = new Elysia({ prefix: "/reports" })
       }),
       detail: {
         tags: ["reports"],
-        description: "Add a comment to a report if it is allowed for the signed in user",
+        description:
+          "Add a comment to a report if it is allowed for the signed in user",
       },
     }
   );

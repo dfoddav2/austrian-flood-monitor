@@ -144,6 +144,9 @@ export const admin = new Elysia({ prefix: "/admin" })
           if (error.message.includes("not found")) {
             set.status = 404; // Not Found
             return { error: error.message };
+          } else if (error.message.includes("admin")) {
+            set.status = 403; // Forbidden
+            return { error: error.message };
           } else {
             set.status = 500; // Internal Server Error
             return { error: "Something went wrong" };
@@ -161,6 +164,25 @@ export const admin = new Elysia({ prefix: "/admin" })
       detail: {
         tags: ["admin"],
         description: "Delete a user's account by their ID",
+      },
+    }
+  )
+  .get(
+    "/get-all-reports",
+    async ({ set }) => {
+      try {
+        const allReports = await sql.getAllReports();
+        set.status = 200;
+        return allReports;
+      } catch (error) {
+        set.status = 400;
+        return { error: "Something went wrong when fetching all users" };
+      }
+    },
+    {
+      detail: {
+        tags: ["admin"],
+        description: "Get all reports from the database",
       },
     }
   );

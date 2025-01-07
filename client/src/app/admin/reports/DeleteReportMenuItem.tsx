@@ -6,7 +6,7 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { eden } from "@/utils/api";
 import { Loader2 } from "lucide-react";
-import { Users } from "./columns";
+import { Reports } from "./columns";
 
 import {
   AlertDialog,
@@ -19,25 +19,25 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-interface DeleteUserMenuItemProps {
-  user: Users;
-  removeUser: (userId: string) => void;
+interface DeleteReportMenuItemProps {
+  report: Reports;
+  removeReport: (reportId: string) => void;
 }
 
-const DeleteUserMenuItem: React.FC<DeleteUserMenuItemProps> = ({
-  user,
-  removeUser,
+const DeleteReportMenuItem: React.FC<DeleteReportMenuItemProps> = ({
+  report,
+  removeReport,
 }) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false); // State to control AlertDialog
 
-  const handleDeleteUser = async () => {
+  const handleDeleteReport = async () => {
     setLoading(true);
-    await eden.admin["delete-account"]
-      .delete({ userId: user.id })
+    await eden.reports["delete-report"]
+      .delete({ reportId: report.id })
       .then((response) => {
-        if (response.status !== 200) {
+        if (response.status !== 204) {
           setIsOpen(false);
           toast({
             title: "Deletion failed",
@@ -45,10 +45,10 @@ const DeleteUserMenuItem: React.FC<DeleteUserMenuItemProps> = ({
             variant: "destructive",
           });
         } else {
-          removeUser(user.id);
+          removeReport(report.id);
           setIsOpen(false);
           toast({
-            title: "User deleted",
+            title: "Report deleted",
             description: "Successfull deletion.",
             variant: "default",
           });
@@ -77,8 +77,9 @@ const DeleteUserMenuItem: React.FC<DeleteUserMenuItemProps> = ({
           setIsOpen(true);
         }}
       >
-        Delete User
+        Delete Report
       </DropdownMenuItem>
+
       {isOpen && (
         <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
           <AlertDialogContent>
@@ -86,14 +87,14 @@ const DeleteUserMenuItem: React.FC<DeleteUserMenuItemProps> = ({
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
               <AlertDialogDescription>
                 This action cannot be undone. This will permanently delete the
-                account and remove their data from our servers.
+                report and remove it&apos;s data from our servers.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 className="bg-red-500 hover:bg-red-400 dark:bg-red-800 dark:hover:bg-red-900 dark:text-primary"
-                onClick={handleDeleteUser}
+                onClick={handleDeleteReport}
                 disabled={loading}
               >
                 {loading && <Loader2 className="animate-spin mr-2" />}
@@ -107,4 +108,4 @@ const DeleteUserMenuItem: React.FC<DeleteUserMenuItemProps> = ({
   );
 };
 
-export default DeleteUserMenuItem;
+export default DeleteReportMenuItem;

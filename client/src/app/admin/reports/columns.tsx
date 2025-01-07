@@ -13,94 +13,107 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-import VerifyUserMenuItem from "./VerifyUserMenuItem";
-import MakeResponderMenuItem from "./MakeResponderMenuItem";
-import DeleteUserMenuItem from "./DeleteUserMenuItem";
+import DeleteReportMenuItem from "./DeleteReportMenuItem";
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
-export type Users = {
+export type Reports = {
   id: string;
-  email: string;
-  username: string;
-  userRole: "USER" | "RESPONDER" | "ADMIN";
-  verified: boolean;
+  createdAt: string;
+  upvotes: number;
+  downvotes: number;
+  authorId: string;
+  title: string;
+  _count: {
+    comments: number;
+  };
+  author: {
+    username: string;
+  };
 };
 
 export const getColumns = (
-  removeUser: (userId: string) => void,
-  updateUser: (updatedUser: Users) => void
-): ColumnDef<Users>[] => [
+  removeReport: (reportId: string) => void
+): ColumnDef<Reports>[] => [
   {
-    accessorKey: "email",
+    accessorKey: "title",
     header: ({ column }) => (
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Email
+        Title
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ getValue }) => getValue<string>(),
+    cell: ({ getValue }) => {
+      const str = getValue<string>();
+      const truncatedStr = str.length <= 13 ? str : str.slice(0, 13) + "...";
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>{truncatedStr}</TooltipTrigger>
+            <TooltipContent>
+              <p>{str}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    },
   },
   {
-    accessorKey: "username",
+    accessorKey: "author.username",
+    id: "author",
     header: ({ column }) => (
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Username
+        Author
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
     cell: ({ row, getValue }) => {
       const username = getValue<string>();
-      return <Link href={`/user/${row.original.id}`}>{username}</Link>;
+      return <Link href={`/user/${row.original.authorId}`}>{username}</Link>;
     },
   },
   {
-    accessorKey: "userRole",
+    accessorKey: "createdAt",
     header: ({ column }) => (
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        User Role
+        Created At
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ getValue }) => getValue<Users["userRole"]>(),
+    cell: ({ getValue }) => {
+      const date = new Date(getValue<string>());
+      return date.toLocaleString(undefined, {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    },
+    sortingFn: (rowA, rowB, columnId) => {
+      const dateA = new Date(rowA.getValue(columnId));
+      const dateB = new Date(rowB.getValue(columnId));
+      return dateA.getTime() - dateB.getTime();
+    },
   },
   {
-    accessorKey: "verified",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Verified
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => (row.original.verified ? "🟢" : "🔴"),
-  },
-  {
-    accessorKey: "_count.reports",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Num reports
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-  },
-  {
-    accessorKey: "reports._sum.upvotes",
+    accessorKey: "upvotes",
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -112,7 +125,7 @@ export const getColumns = (
     ),
   },
   {
-    accessorKey: "reports._sum.downvotes",
+    accessorKey: "downvotes",
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -124,9 +137,21 @@ export const getColumns = (
     ),
   },
   {
+    accessorKey: "_count.comments",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Comments
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+  },
+  {
     id: "actions",
     cell: ({ row }) => {
-      const user = row.original;
+      const report = row.original;
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -139,33 +164,28 @@ export const getColumns = (
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem asChild>
               <Link
-                href={`/user/${user.id}`}
+                href={`/reports/${report.id}`}
                 className="w-full h-full flex items-center cursor-pointer"
               >
-                See User
+                See Report
               </Link>
             </DropdownMenuItem>
-            {/* Manually verify the user if unverified */}
-            {!user.verified && (
-              <VerifyUserMenuItem user={row.original} updateUser={updateUser} />
-            )}
-            {/* Make regular user a RESPONDER */}
-            {user.userRole === "USER" && user.verified && (
-              <MakeResponderMenuItem
-                user={row.original}
-                updateUser={updateUser}
+            <DropdownMenuItem asChild>
+              <Link
+                href={`/reports/${report.id}/edit`}
+                className="w-full h-full flex items-center cursor-pointer"
+              >
+                Edit Report
+              </Link>
+            </DropdownMenuItem>
+            {/* Deleting the report */}
+            <>
+              <DropdownMenuSeparator />
+              <DeleteReportMenuItem
+                report={row.original}
+                removeReport={removeReport}
               />
-            )}
-            {/* Editing and deleting the users */}
-            {user.userRole !== "ADMIN" && (
-              <>
-                <DropdownMenuSeparator />
-                <DeleteUserMenuItem
-                  user={row.original}
-                  removeUser={removeUser}
-                />
-              </>
-            )}
+            </>
           </DropdownMenuContent>
         </DropdownMenu>
       );

@@ -204,7 +204,7 @@ export const reports = new Elysia({ prefix: "/reports" })
           if (error.message.includes("not found")) {
             set.status = 404; // Not Found
             return { error: error.message };
-          } else if (error.message.includes("author")) {
+          } else if (error.message.includes("authorized")) {
             set.status = 403; // Forbidden
             return { error: error.message };
           } else {

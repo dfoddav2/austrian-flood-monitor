@@ -53,6 +53,29 @@ export async function getAllUsers(): Promise<Omit<User, "password">[]> {
   return usersWithAggregates;
 }
 
+export async function getAllReports() {
+  return await prisma.report.findMany({
+    select: {
+      id: true,
+      createdAt: true,
+      upvotes: true,
+      downvotes: true,
+      authorId: true,
+      title: true,
+      _count: {
+        select: {
+          comments: true,
+        },
+      },
+      author: {
+        select: {
+          username: true,
+        },
+      },
+    },
+  });
+}
+
 export async function getUserById(
   id: string
 ): Promise<Omit<User, "password"> | null> {
@@ -180,9 +203,16 @@ export async function deleteUser(id: string): Promise<void> {
     where: {
       id,
     },
+    select: {
+      id: true,
+      userRole: true,
+    },
   });
   if (!user) {
     throw new Error("User not found");
+  }
+  if (user.userRole === UserRole.ADMIN) {
+    throw new Error("Cannot delete an admin user");
   }
 
   await prisma.user.delete({
@@ -268,10 +298,6 @@ export async function checkCredentials({
   } else {
     return user;
   }
-}
-
-export async function getAllReports() {
-  return await prisma.report.findMany();
 }
 
 export async function getReports({
@@ -536,7 +562,7 @@ export async function updateReport(
   });
 }
 
-export async function deleteReport(authorId: string, reportId: string) {
+export async function deleteReport(initiatorId: string, reportId: string) {
   const report = await prisma.report.findUnique({
     where: {
       id: reportId,
@@ -545,8 +571,18 @@ export async function deleteReport(authorId: string, reportId: string) {
   if (!report) {
     throw new Error("Report not found");
   }
-  if (report.authorId !== authorId) {
-    throw new Error("You are not the author of this report");
+  const initiator = await prisma.user.findUnique({
+    where: {
+      id: initiatorId,
+    },
+  });
+  if (!initiator) {
+    throw new Error("Initiator not found");
+  }
+  if (report.authorId !== initiatorId) {
+    if (initiator.userRole !== UserRole.ADMIN) {
+      throw new Error("You are not the authorized to delete this report");
+    }
   }
 
   await prisma.report.delete({

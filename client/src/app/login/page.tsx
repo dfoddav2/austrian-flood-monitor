@@ -72,7 +72,7 @@ export default function LoginPage() {
 
         if (response.status !== 200) {
           console.error(response.error.value.error);
-          setError(response.error.value.error);
+          setError(response.error.value?.error || "Something went wrong");
         } else {
           setCookie("authCookie", response.data.authCookie);
           // setCookie("token", response.data.token);

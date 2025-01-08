@@ -74,7 +74,7 @@ export default function RegisterPage() {
         console.log("Outcome: ", response);
 
         if (response.status !== 201) {
-          setError(response.error.value.error);
+          setError(response.error.value?.error || "Something went wrong");
           console.error(response.error.value.error);
         } else {
           setCookie("authCookie", response.data.authCookie);

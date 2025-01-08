@@ -1,8 +1,7 @@
 import { Elysia, t } from "elysia";
 
 import { sql } from "@server/sql";
-import { AuthContextWithBody } from "@utils/types";
-// import { AuthContextWithBody, RegisterBody, LoginBody } from "@utils/types";
+import { AuthContext, AuthContextWithBody } from "@utils/types";
 
 export const reports = new Elysia({ prefix: "/reports" })
   .post(
@@ -16,12 +15,22 @@ export const reports = new Elysia({ prefix: "/reports" })
         sortOrder,
         userLatitude,
         userLongitude,
+        fromDate,
+        toDate,
       },
     }) => {
       try {
         // Validate and cast sortOrder
         const validSortOrder: "asc" | "desc" | undefined =
           sortOrder === "asc" || sortOrder === "desc" ? sortOrder : undefined;
+
+        const parsedFromDate = fromDate ? new Date(fromDate) : undefined;
+        const parsedToDate = toDate ? new Date(toDate) : undefined;
+
+        // Adjust toDate to end-of-day if provided
+        if (parsedToDate) {
+          parsedToDate.setHours(23, 59, 59, 999);
+        }
 
         const reports = await sql.getReports({
           page: Number(page),
@@ -30,6 +39,8 @@ export const reports = new Elysia({ prefix: "/reports" })
           sortOrder: validSortOrder,
           userLatitude: userLatitude ? Number(userLatitude) : undefined,
           userLongitude: userLongitude ? Number(userLongitude) : undefined,
+          fromDate: parsedFromDate,
+          toDate: parsedToDate,
         });
         set.status = 200;
         return reports;
@@ -46,6 +57,8 @@ export const reports = new Elysia({ prefix: "/reports" })
         sortOrder: t.Optional(t.String()),
         userLatitude: t.Optional(t.Number()),
         userLongitude: t.Optional(t.Number()),
+        fromDate: t.Optional(t.String()),
+        toDate: t.Optional(t.String()),
       }),
       detail: {
         tags: ["reports"],
@@ -55,11 +68,19 @@ export const reports = new Elysia({ prefix: "/reports" })
   )
   .post(
     "/reports-by-author-id",
-    async ({ set, body: { authorId } }) => {
+    async ({
+      set,
+      body: { authorId },
+    }: AuthContextWithBody<{ authorId: string }>) => {
+      if (!authorId) {
+        set.status = 400; // Unauthorized
+        return { error: "No user ID given" };
+      }
+
       try {
-        const report = await sql.getReportsAssociatedWithUser(authorId);
+        const reports = await sql.getReportsAssociatedWithUser(authorId);
         set.status = 200;
-        return report;
+        return reports;
       } catch (error) {
         if (error instanceof Error) {
           if (error.message.includes("not found")) {
@@ -101,9 +122,11 @@ export const reports = new Elysia({ prefix: "/reports" })
       } catch (error) {
         if (error instanceof Error) {
           if (error.message.includes("not found")) {
+            console.log("Report not found");
             set.status = 404; // Not Found
             return { error: error.message };
           } else {
+            console.log("Unknown error occurred");
             set.status = 500; // Internal Server Error
             return { error: "Something went wrong" };
           }
@@ -194,7 +217,7 @@ export const reports = new Elysia({ prefix: "/reports" })
           if (error.message.includes("not found")) {
             set.status = 404; // Not Found
             return { error: error.message };
-          } else if (error.message.includes("author")) {
+          } else if (error.message.includes("authorized")) {
             set.status = 403; // Forbidden
             return { error: error.message };
           } else {
@@ -218,17 +241,15 @@ export const reports = new Elysia({ prefix: "/reports" })
     }
   )
   .post(
-    "edit-report",
+    "/edit-report",
     async ({
       set,
       id,
-      body: { reportId, title, description, latitude, longitude, images },
+      body: { reportId, title, description, images },
     }: AuthContextWithBody<{
       reportId: string;
       title: string;
       description: string;
-      latitude: number;
-      longitude: number;
       images: { source: string; description: string }[];
     }>) => {
       if (!id) {
@@ -241,8 +262,6 @@ export const reports = new Elysia({ prefix: "/reports" })
           reportId,
           title,
           description,
-          latitude,
-          longitude,
           images
         );
         set.status = 200;
@@ -267,12 +286,9 @@ export const reports = new Elysia({ prefix: "/reports" })
     },
     {
       body: t.Object({
-        id: t.String(),
         reportId: t.String(),
         title: t.Optional(t.String()),
         description: t.Optional(t.String()),
-        latitude: t.Optional(t.String()),
-        longitude: t.Optional(t.String()),
         images: t.Optional(
           t.Array(
             t.Object({
@@ -289,7 +305,7 @@ export const reports = new Elysia({ prefix: "/reports" })
     }
   )
   .post(
-    "upvote-report",
+    "/upvote-report",
     async ({
       set,
       id,
@@ -336,7 +352,7 @@ export const reports = new Elysia({ prefix: "/reports" })
     }
   )
   .post(
-    "downvote-report",
+    "/downvote-report",
     async ({
       set,
       id,
@@ -378,6 +394,51 @@ export const reports = new Elysia({ prefix: "/reports" })
       detail: {
         tags: ["reports"],
         description: "Downvote a report based on its ID",
+      },
+    }
+  )
+  .post(
+    "/comment-on-report",
+    async ({
+      set,
+      body,
+      id,
+    }: AuthContextWithBody<{ reportId: string; content: string }>) => {
+      if (!id) {
+        set.status = 401; // Unauthorized
+        return { error: "Not authorized" };
+      }
+      // Call SQL function to add comment
+      try {
+        const comment = sql.createComment(id, body.reportId, body.content);
+        set.status = 201;
+        return comment;
+      } catch (error) {
+        if (error instanceof Error) {
+          if (error.message.includes("not found")) {
+            set.status = 404; // Not Found
+            return { error: error.message };
+          } else if (error.message.includes("authorized")) {
+            set.status = 403; // Forbidden
+            return { error: error.message };
+          } else {
+            set.status = 500; // Internal Server Error
+            return { error: "Something went wrong" };
+          }
+        }
+        set.status = 500;
+        return { error: "Something went wrong" };
+      }
+    },
+    {
+      body: t.Object({
+        reportId: t.String(),
+        content: t.String(),
+      }),
+      detail: {
+        tags: ["reports"],
+        description:
+          "Add a comment to a report if it is allowed for the signed in user",
       },
     }
   )

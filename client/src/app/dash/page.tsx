@@ -22,7 +22,7 @@ const MapWithRivers = dynamic(() => import("@/components/MapAddOns"), {
 
 export default function Home() {
   return (
-    <div>
+    <>
       <Card className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20 my-4">
         <CardHeader>
           <CardTitle>Welcome to the dashboard</CardTitle>
@@ -55,6 +55,6 @@ export default function Home() {
           </CardDescription>
         </CardFooter>
       </Card>
-    </div>
+    </>
   );
 }

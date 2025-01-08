@@ -126,7 +126,7 @@ const Map: React.FC<MapProps> = ({ latitude, longitude }) => {
 
   return (
     <div>
-      <div ref={mapContainer} className="rounded-lg h-52 w-full" />
+      <div ref={mapContainer} className="rounded-lg h-52 w-full z-20" />
     </div>
   );
 };

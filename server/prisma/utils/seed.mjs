@@ -27,6 +27,7 @@ async function main() {
           username: "adminuser",
           password: hashedPassword, // Ensure to hash passwords in a real application
           userRole: "ADMIN",
+          verified: true,
         },
         {
           id: "responder_id_1",
@@ -51,6 +52,7 @@ async function main() {
           username: "thirdresponder",
           password: hashedPassword, // Ensure to hash passwords in a real application
           userRole: "RESPONDER",
+          verified: true,
         },
         {
           id: "user_id_1",
@@ -123,6 +125,15 @@ async function main() {
           longitude: 16.3738,
           authorId: "user_id_1",
           upvotes: 1,
+        },
+        {
+          id: "report_id_2",
+          title: "Waterlogged area in Graz",
+          description: "Continuous heavy rain causing waterlogging in the inner parts of Graz.",
+          latitude: 47.071,
+          longitude: 15.439,
+          authorId: "responder_id_1",
+          createdAt: new Date("2024-12-24T12:00:00Z"),
         },
         {
           id: "report_id_3",
@@ -389,6 +400,39 @@ async function main() {
     });
 
     console.log("Images seeded successfully 🌱");
+
+    // Create comments
+    const comments = await prisma.comment.createMany({
+      data: [
+        {
+          id: "comment_id_1",
+          reportId: "report_id_1",
+          userId: "user_id_1",
+          content: "This is a serious situation. Stay safe everyone!",
+        },
+        {
+          id: "comment_id_2",
+          reportId: "report_id_1",
+          userId: "responder_id_1",
+          content: "I'm on my way to the location.",
+        },
+        {
+          id: "comment_id_3",
+          reportId: "report_id_2",
+          userId: "admin_id_1",
+          content: "I've alerted the local authorities.",
+        },
+        {
+          id: "comment_id_4",
+          reportId: "report_id_4",
+          userId: "user_id_1",
+          content: "I've shared this report with my friends.",
+        },
+      ],
+    });
+
+    console.log("Comments seeded successfully 🌱");
+
   } catch (error) {
     console.error("Error seeding data: ", error);
   } finally {

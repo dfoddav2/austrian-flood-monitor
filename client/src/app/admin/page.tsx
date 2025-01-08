@@ -19,7 +19,7 @@ export default function AdminPage() {
   return (
     <>
       {user?.userRole !== "ADMIN" ? (
-        <Card>
+        <Card className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20">
           <CardHeader>
             <CardTitle>Admin Page</CardTitle>
           </CardHeader>
@@ -34,13 +34,13 @@ export default function AdminPage() {
           </CardFooter>
         </Card>
       ) : (
-        <Card>
+        <Card className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20">
           <CardHeader>
             <CardTitle>Admin Page</CardTitle>
+            <CardDescription>
+              You can either see and edit users or reports from here.
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <p>You can either see and edit users or reports from here.</p>
-          </CardContent>
           <CardContent className="space-x-2">
             <Button asChild>
               <Link href="/admin/users">Users</Link>
@@ -54,7 +54,7 @@ export default function AdminPage() {
               <CardHeader>News Dashboard</CardHeader>
               <CardContent>
                 <CardDescription>
-                    TODO: You will be able to see latest new from here via cards.
+                  TODO: You will be able to see latest new from here via cards.
                 </CardDescription>
               </CardContent>
             </Card>

@@ -319,7 +319,7 @@ interface GetReportsParams {
   userLatitude?: number;
   userLongitude?: number;
   fromDate?: Date; // ← Add these
-  toDate?: Date;   // ← Add these
+  toDate?: Date; // ← Add these
 }
 
 export async function getReports({
@@ -350,14 +350,26 @@ export async function getReports({
   }
 
   // Handle special 'distance' sorting first
-  if (sortBy === "distance" && userLatitude !== undefined && userLongitude !== undefined) {
+  if (
+    sortBy === "distance" &&
+    userLatitude !== undefined &&
+    userLongitude !== undefined
+  ) {
     const validSortOrder = sortOrder === "desc" ? "DESC" : "ASC";
 
     // Convert fromDate/toDate to SQL if provided
     // (Adjust syntax to your DB if different)
     const dateFilterSQL = `
-      ${fromDate ? `AND "createdAt" >= ${prisma.$queryRaw`\`${fromDate.toISOString()}\``}` : ""}
-      ${toDate ? `AND "createdAt" <= ${prisma.$queryRaw`\`${toDate.toISOString()}\``}` : ""}
+      ${
+        fromDate
+          ? `AND "createdAt" >= ${prisma.$queryRaw`\`${fromDate.toISOString()}\``}`
+          : ""
+      }
+      ${
+        toDate
+          ? `AND "createdAt" <= ${prisma.$queryRaw`\`${toDate.toISOString()}\``}`
+          : ""
+      }
     `;
 
     // Calculate distance using the Haversine formula, then filter + sort
@@ -404,7 +416,7 @@ export async function getReports({
   const reports = await prisma.report.findMany({
     skip,
     take,
-    where,         // ← Apply your date-range filter here
+    where, // ← Apply your date-range filter here
     orderBy,
     include: {
       images: true,
@@ -794,6 +806,28 @@ export async function getReportsMap() {
     },
   });
   return reports;
+}
+
+export async function getLatestReports() {
+  // Fetch the 4 latest reports - ordered by createdAt in descending order
+  const reports = await prisma.report.findMany({
+    take: 4,
+    orderBy: {
+      createdAt: "desc",
+    },
+    include: {
+      images: true,
+    },
+  });
+
+  // Manually pick the fields you need
+  return reports.map((report) => ({
+    id: report.id,
+    title: report.title,
+    description: report.description,
+    createdAt: report.createdAt,
+    images: report.images,
+  }));
 }
 
 export * as sql from "./sql";

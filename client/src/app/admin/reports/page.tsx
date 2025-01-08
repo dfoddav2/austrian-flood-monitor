@@ -57,7 +57,7 @@ export default function AdminReportsPage() {
   return (
     <>
       {user?.userRole !== "ADMIN" ? (
-        <Card>
+        <Card className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20">
           <CardHeader>
             <CardTitle>Admin Page</CardTitle>
           </CardHeader>
@@ -72,9 +72,12 @@ export default function AdminReportsPage() {
           </CardFooter>
         </Card>
       ) : (
-        <Card>
+        <Card className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20">
           <CardHeader>
             <CardTitle>Admin Reports Page</CardTitle>
+            <CardDescription>
+              Here you may view and edit the reports of the application.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {loadingReports ? (
@@ -87,7 +90,8 @@ export default function AdminReportsPage() {
           </CardContent>
           <CardFooter>
             <CardDescription>
-              Here you may view and edit the reports of the application.
+              Data shown in the table reflects the current states of the
+              database.
             </CardDescription>
           </CardFooter>
         </Card>

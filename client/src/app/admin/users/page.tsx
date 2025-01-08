@@ -59,12 +59,15 @@ export default function AdminUsersPage() {
   }, []);
 
   // Memoize columns to prevent unnecessary re-renders
-  const columns = useMemo(() => getColumns(removeUser, updateUser), [removeUser, updateUser]);
+  const columns = useMemo(
+    () => getColumns(removeUser, updateUser),
+    [removeUser, updateUser]
+  );
 
   return (
     <>
       {user?.userRole !== "ADMIN" ? (
-        <Card>
+        <Card className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20">
           <CardHeader>
             <CardTitle>Admin Page</CardTitle>
           </CardHeader>
@@ -79,9 +82,12 @@ export default function AdminUsersPage() {
           </CardFooter>
         </Card>
       ) : (
-        <Card>
+        <Card className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20">
           <CardHeader>
             <CardTitle>Admin Users Page</CardTitle>
+            <CardDescription>
+              Here you may view and edit the users of the application.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {loadingUsers ? (
@@ -94,7 +100,8 @@ export default function AdminUsersPage() {
           </CardContent>
           <CardFooter>
             <CardDescription>
-              Here you may view and edit the users of the application.
+              Data shown in the table reflects the current states of the
+              database.
             </CardDescription>
           </CardFooter>
         </Card>

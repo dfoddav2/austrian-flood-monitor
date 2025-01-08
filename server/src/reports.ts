@@ -460,4 +460,23 @@ export const reports = new Elysia({ prefix: "/reports" })
         description: "Get reports information for map",
       },
     }
+  )
+  .get(
+    "/get-latest-reports",
+    async ({ set }) => {
+      try {
+        const reports = await sql.getLatestReports();
+        set.status = 200;
+        return reports;
+      } catch (error) {
+        set.status = 500;
+        return { error: "Unknown error occurred" };
+      }
+    },
+    {
+      detail: {
+        tags: ["reports"],
+        description: "Get the latest reports",
+      },
+    }
   );

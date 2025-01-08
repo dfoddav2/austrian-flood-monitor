@@ -9,6 +9,8 @@ import "proj4leaflet";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { AlertCircle } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { DateRange } from "react-day-picker";
+import { DatePickerWithRange } from "@/components/ui/DatePickerWithRange";
 
 // Marker clusters
 import "leaflet.markercluster";
@@ -56,6 +58,18 @@ const MapWithRivers: React.FC = () => {
   const [showHQ100, setShowHQ100] = useState(false);
   const [showWaterLevels, setShowWaterLevels] = useState(false);
   const [showReports, setShowReports] = useState(true);
+
+  interface Report {
+    id: string;
+    title: string;
+    description: string;
+    createdAt: string;
+    latitude: number;
+    longitude: number;
+  }
+
+  const [allReports, setAllReports] = useState<Report[]>([]);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -238,6 +252,7 @@ const MapWithRivers: React.FC = () => {
         } else {
           // console.log("Reports fetched", response.data);
           reports = response.data;
+          setAllReports(response.data); // Store all reports
         }
       })
       .catch((error) => {
@@ -402,6 +417,34 @@ const MapWithRivers: React.FC = () => {
     }
   }, [showHQ30, showHQ100, showWaterLevels, showReports]);
 
+  // Filtering Reports based on creation time
+  useEffect(() => {
+    if (!userReportsLayerGroupRef.current) return;
+    userReportsLayerGroupRef.current.clearLayers();
+
+    // Filter locally
+    const filteredReports = allReports.filter((report) => {
+      if (!dateRange?.from || !dateRange?.to) return true;
+      const created = new Date(report.createdAt);
+      return created >= dateRange.from && created <= dateRange.to;
+    });
+
+    // Create markers for only filtered reports
+    filteredReports.forEach((report) => {
+      const formattedDate = new Date(report.createdAt).toLocaleString();
+      const popupContent = `
+        <h3 style='font-weight:bold;'>${report.title}</h3>
+        <p>${report.description}</p>
+        <strong>Created at:</strong> ${formattedDate}<br>
+        <a href="/reports/${report.id}" target="_blank">View Report</a>
+      `;
+      const marker = L.marker([report.latitude, report.longitude]).bindPopup(
+        popupContent
+      );
+      marker.addTo(userReportsLayerGroupRef.current!);
+    });
+  }, [allReports, dateRange]);
+
   return (
     <div>
       {(showHQ30 || showHQ100) && (
@@ -448,9 +491,14 @@ const MapWithRivers: React.FC = () => {
           >
             HQ30
           </ToggleGroupItem>
+          <DatePickerWithRange
+            value={dateRange}
+            onChange={setDateRange}
+            className="z-50"
+          />
         </ToggleGroup>
       </div>
-      <div className="relative">
+      <div className="relative z-10">
         <div ref={mapContainer} className="rounded-lg h-96 w-full" />
       </div>
     </div>

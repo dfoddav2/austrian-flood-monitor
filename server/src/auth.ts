@@ -280,7 +280,7 @@ export const auth = new Elysia({ prefix: "/auth" })
     }
   )
   .post(
-    "request-verification",
+    "/request-verification",
     async ({ jwt, set, id }: AuthContext) => {
       if (!id) {
         set.status = 401; // Unauthorized

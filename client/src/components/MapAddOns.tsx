@@ -7,6 +7,8 @@ import L from "leaflet";
 import proj4 from "proj4";
 import "proj4leaflet";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { AlertCircle } from "lucide-react";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Marker clusters
 import "leaflet.markercluster";
@@ -402,6 +404,16 @@ const MapWithRivers: React.FC = () => {
 
   return (
     <div>
+      {(showHQ30 || showHQ100) && (
+        <Card className="my-2 w-fit">
+          <CardHeader>
+            <CardTitle className="flex justify-items-start gap-2 items-center">
+              <AlertCircle className="h-4 w-4" />
+              <span>HQ30 and HQ100 only shows up after zooming in!</span>
+            </CardTitle>
+          </CardHeader>
+        </Card>
+      )}
       <div className="flex justify-items-start my-2">
         <ToggleGroup type="multiple" className="space-x-2" variant="outline">
           <ToggleGroupItem

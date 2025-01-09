@@ -800,13 +800,14 @@ async function main() {
 
     console.log("Comments seeded successfully 🌱");
 
-    const filePath = path.join(__dirname, "monatsminima.json");
-    const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+    const minimaPath = path.join(__dirname, "monatsminima.json");
+    const minimaData = JSON.parse(fs.readFileSync(minimaPath, "utf-8"));
 
-    for (const [stationId, stationData] of Object.entries(data)) {
-      const measurementStation = await prisma.minimaMeasurements.create({
+    for (const [stationId, stationData] of Object.entries(minimaData)) {
+      await prisma.measurement.create({
         data: {
-          id: stationId,
+          type: "MINIMA",
+          hzbnr: stationId,
           stationName: stationData.name,
           waterBody: stationData.waterBody,
           catchmentArea: stationData.catchmentArea,
@@ -817,7 +818,48 @@ async function main() {
       // console.log(`Inserted station: ${measurementStation.stationName}`);
     }
 
-    console.log("Measurements seeded successfully 🌱");
+    console.log("Minima measurements seeded successfully 🌱");
+
+    const maximaPath = path.join(__dirname, "monatsmaxima.json");
+    const maximaData = JSON.parse(fs.readFileSync(maximaPath, "utf-8"));
+
+    for (const [stationId, stationData] of Object.entries(maximaData)) {
+      await prisma.measurement.create({
+        data: {
+          type: "MAXIMA",
+          hzbnr: stationId,
+          stationName: stationData.name,
+          waterBody: stationData.waterBody,
+          catchmentArea: stationData.catchmentArea,
+          operatingAuthority: stationData.operatingAuthority,
+          measurements: stationData.measurements,
+        },
+      });
+      // console.log(`Inserted station: ${measurementStation.stationName}`);
+    }
+
+    console.log("Maxima measurements seeded successfully 🌱");
+
+    const mittelPath = path.join(__dirname, "tagesmittel.json");
+    const mittelData = JSON.parse(fs.readFileSync(mittelPath, "utf-8"));
+
+    for (const [stationId, stationData] of Object.entries(mittelData)) {
+      await prisma.measurement.create({
+        data: {
+          type: "AVG",
+          hzbnr: stationId,
+          stationName: stationData.name,
+          waterBody: stationData.waterBody,
+          catchmentArea: stationData.catchmentArea,
+          operatingAuthority: stationData.operatingAuthority,
+          measurements: stationData.measurements,
+        },
+      });
+      // console.log(`Inserted station: ${measurementStation.stationName}`);
+    }
+
+    console.log("Tagesmittel measurements seeded successfully 🌱");
+
   } catch (error) {
     console.error("Error seeding data: ", error);
   } finally {

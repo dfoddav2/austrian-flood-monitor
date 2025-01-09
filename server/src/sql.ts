@@ -1,4 +1,4 @@
-import { Prisma, User, UserRole } from "@prisma/client";
+import { User, UserRole, MeasurementType } from "@prisma/client";
 import { prisma } from "@server/prisma";
 import { verifyPassword } from "@utils/verifyPassword";
 
@@ -830,21 +830,71 @@ export async function getLatestReports() {
   }));
 }
 
+interface Measurement {
+  id: string;
+  stationName: string;
+  waterBody: string;
+  catchmentArea: string;
+  operatingAuthority: string;
+  measurements: {
+    year: string;
+    value: number;
+  }[];
+}
+
+interface HistoricData {
+  minima?: Measurement;
+  maxima?: Measurement;
+  avg?: Measurement;
+}
+
 export async function getHistoricData(hzbnr: string) {
   // Fetch the historic data for the given hzbnr
+  const measurements = await prisma.measurement.findMany({
+    where: {
+      hzbnr,
+    },
+  });
+
+  if (!measurements || measurements.length === 0) {
+    throw new Error("No historic data found for hzbnr: " + hzbnr);
+  }
+
+  // Initialize the grouped data
+  const groupedData: HistoricData = {};
+
+  // Group measurements by type
+  measurements.forEach((measurement) => {
+    switch (measurement.type) {
+      case MeasurementType.MINIMA:
+        groupedData.minima = measurement;
+        break;
+      case MeasurementType.MAXIMA:
+        groupedData.maxima = measurement;
+        break;
+      case MeasurementType.AVG:
+        groupedData.avg = measurement;
+        break;
+      default:
+        console.warn(`Unknown measurement type: ${measurement.type}`);
+    }
+  });
+
+  return groupedData;
+}
+
+export async function getAllHzbnr(): Promise<string[]> {
   try {
-    const minimaMeasurements = await prisma.minimaMeasurements.findMany({
-      where: {
-        id: hzbnr,
+    const allHzbnr = await prisma.measurement.findMany({
+      distinct: ["hzbnr"],
+      select: {
+        hzbnr: true,
       },
     });
-    if (!minimaMeasurements) {
-      throw new Error("No historic data found for id: " + hzbnr);
-    }
-    return minimaMeasurements;
+    return allHzbnr.map((measurement: { hzbnr: string }) => measurement.hzbnr);
   } catch (error) {
-    console.error("Error fetching historic data:", error);
-    throw new Error("Error fetching historic data");
+    console.error("Error fetching all hzbnr:", error);
+    throw new Error("Error fetching all hzbnr");
   }
 }
 

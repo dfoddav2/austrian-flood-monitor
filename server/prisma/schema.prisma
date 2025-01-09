@@ -21,6 +21,12 @@ enum UserRole {
   USER
 }
 
+enum MeasurementType {
+  MINIMA
+  AVG
+  MAXIMA
+}
+
 model User {
   // Meta
   id String @id @unique @default(cuid())
@@ -86,11 +92,13 @@ model Image {
   description String
 }
 
-model MinimaMeasurements {
+model Measurement {
   id                  String @id @default(cuid())
+  type                MeasurementType
+  hzbnr               String
   stationName         String
   waterBody           String
   catchmentArea       String
   operatingAuthority  String
-  measurements  Json   // Postgres JSONB column
+  measurements        Json   // Postgres JSONB column
 }

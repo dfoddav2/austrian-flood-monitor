@@ -110,6 +110,23 @@ const MapWithRivers: React.FC = () => {
   // ------------------------
   // Function to fetch and add WFS data
   const fetchWFSData = async () => {
+    // Another part of it is to fetch all hzbnr numbers available
+    let hzbnrSet = new Set();
+    eden.reports["get-all-hzbnr"]
+      .get()
+      .then((response) => {
+        if (response.status !== 200) {
+          console.error("Error fetching hzbnr numbers", response);
+        } else {
+          console.log("All hzbnr numbers", response.data);
+          const numbers = response.data.map((item: string) => parseInt(item));
+          hzbnrSet = new Set(numbers);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching hzbnr numbers", error);
+      });
+
     const wfsUrl =
       "https://gis.lfrz.gv.at/wmsgw/?key=a64a0c9c9a692ed7041482cb6f03a40a&SERVICE=WFS&REQUEST=GetFeature&VERSION=2.0.0&TYPENAME=inspire:pegelaktuell&OUTPUTFORMAT=application/json";
     const response = await fetch(wfsUrl);
@@ -214,6 +231,10 @@ const MapWithRivers: React.FC = () => {
           popupContent += `<strong>Timestamp:</strong> ${formattedTimestamp}<br>`;
 
           popupContent += `<a href="${internet}" target="_blank">More Info</a>`;
+
+          if (hzbnrSet.has(feature.properties.hzbnr)) {
+            popupContent += `<br><a href="/dash/${feature.properties.hzbnr}" target="_blank">Historical data</a>`;
+          }
 
           layer.bindPopup(popupContent);
         }

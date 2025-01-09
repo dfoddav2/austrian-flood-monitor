@@ -480,6 +480,30 @@ export const reports = new Elysia({ prefix: "/reports" })
       },
     }
   )
+  .get(
+    "/get-all-hzbnr",
+    async ({ set }: AuthContext) => {
+      try {
+        const allHzbnr = await sql.getAllHzbnr();
+        console.log(allHzbnr);
+        set.status = 200;
+        return allHzbnr;
+      } catch (error) {
+        if (error instanceof Error) {
+          set.status = 500;
+          return { error: "Unknown error occurred" };
+        }
+      }
+      set.status = 500;
+      return { error: "Unknown error occurred" };
+    },
+    {
+      detail: {
+        tags: ["reports"],
+        description: "Get all hzbnr numbers available",
+      },
+    }
+  )
   .post(
     "/get-historic-data",
     async ({
@@ -493,12 +517,11 @@ export const reports = new Elysia({ prefix: "/reports" })
           return { error: "No hzbnr provided" };
         }
         const historicData = await sql.getHistoricData(hzbnr);
-        console.log()
         set.status = 200;
         return historicData;
       } catch (error) {
         if (error instanceof Error) {
-          if (error.message.includes("not found")) {
+          if (error.message.includes("historic")) {
             set.status = 404;
             return { error: error.message };
           } else {
@@ -516,7 +539,7 @@ export const reports = new Elysia({ prefix: "/reports" })
       }),
       detail: {
         tags: ["reports"],
-        description: "Get the latest reports",
+        description: "Get historic data for a specific hzbnr",
       },
     }
   );

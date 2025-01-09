@@ -830,4 +830,22 @@ export async function getLatestReports() {
   }));
 }
 
+export async function getHistoricData(hzbnr: string) {
+  // Fetch the historic data for the given hzbnr
+  try {
+    const minimaMeasurements = await prisma.minimaMeasurements.findMany({
+      where: {
+        id: hzbnr,
+      },
+    });
+    if (!minimaMeasurements) {
+      throw new Error("No historic data found for id: " + hzbnr);
+    }
+    return minimaMeasurements;
+  } catch (error) {
+    console.error("Error fetching historic data:", error);
+    throw new Error("Error fetching historic data");
+  }
+}
+
 export * as sql from "./sql";

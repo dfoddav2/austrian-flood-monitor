@@ -85,3 +85,12 @@ model Image {
   source String
   description String
 }
+
+model MinimaMeasurements {
+  id                  String @id @default(cuid())
+  stationName         String
+  waterBody           String
+  catchmentArea       String
+  operatingAuthority  String
+  measurements  Json   // Postgres JSONB column
+}

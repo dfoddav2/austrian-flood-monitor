@@ -479,4 +479,44 @@ export const reports = new Elysia({ prefix: "/reports" })
         description: "Get the latest reports",
       },
     }
+  )
+  .post(
+    "/get-historic-data",
+    async ({
+      set,
+      body: { hzbnr },
+    }: AuthContextWithBody<{ hzbnr: string }>) => {
+      try {
+        console.log("Getting historic data for hzbnr:", hzbnr);
+        if (!hzbnr) {
+          set.status = 400;
+          return { error: "No hzbnr provided" };
+        }
+        const historicData = await sql.getHistoricData(hzbnr);
+        console.log()
+        set.status = 200;
+        return historicData;
+      } catch (error) {
+        if (error instanceof Error) {
+          if (error.message.includes("not found")) {
+            set.status = 404;
+            return { error: error.message };
+          } else {
+            set.status = 500;
+            return { error: "Unknown error occurred" };
+          }
+        }
+        set.status = 500;
+        return { error: "Unknown error occurred" };
+      }
+    },
+    {
+      body: t.Object({
+        hzbnr: t.String(),
+      }),
+      detail: {
+        tags: ["reports"],
+        description: "Get the latest reports",
+      },
+    }
   );

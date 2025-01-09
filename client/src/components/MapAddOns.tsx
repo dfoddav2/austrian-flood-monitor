@@ -139,6 +139,8 @@ const MapWithRivers: React.FC = () => {
       );
     });
 
+    console.log("Example feature", filteredFeatures[0]);
+
     // Reproject the GeoJSON features
     const reprojectedFeatures = filteredFeatures.map((feature: Feature) => {
       const [x, y] = feature.geometry.coordinates;

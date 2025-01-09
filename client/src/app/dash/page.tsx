@@ -90,7 +90,11 @@ export default function Home() {
                     latestReports.map((report) => (
                       <Card key={report.id}>
                         <CardHeader>
-                          <CardTitle>{report.title}</CardTitle>
+                          <CardTitle>
+                            <Link href="/reports/report.id">
+                              {report.title}
+                            </Link>
+                          </CardTitle>
                           <CardDescription>
                             {new Date(report.createdAt).toLocaleString()}
                           </CardDescription>

@@ -5,6 +5,10 @@ import path from "path";
 // import { createId } from "@paralleldrive/cuid2";
 
 const prisma = new PrismaClient();
+
+// Use process.cwd() to get the current working directory
+const __dirname = process.cwd();
+
 // Hashing
 const saltRounds = 10;
 
@@ -800,7 +804,17 @@ async function main() {
 
     console.log("Comments seeded successfully 🌱");
 
-    const minimaPath = path.join(__dirname, "monatsminima.json");
+    const minimaPath = path.join(
+      __dirname,
+      "prisma",
+      "utils",
+      "monatsminima.json"
+    );
+
+    // Check if the file exists
+    if (!fs.existsSync(minimaPath)) {
+      throw new Error(`File not found: ${minimaPath}`);
+    }
     const minimaData = JSON.parse(fs.readFileSync(minimaPath, "utf-8"));
 
     for (const [stationId, stationData] of Object.entries(minimaData)) {
@@ -820,7 +834,17 @@ async function main() {
 
     console.log("Minima measurements seeded successfully 🌱");
 
-    const maximaPath = path.join(__dirname, "monatsmaxima.json");
+    const maximaPath = path.join(
+      __dirname,
+      "prisma",
+      "utils",
+      "monatsmaxima.json"
+    );
+
+    // Check if the file exists
+    if (!fs.existsSync(maximaPath)) {
+      throw new Error(`File not found: ${maximaPath}`);
+    }
     const maximaData = JSON.parse(fs.readFileSync(maximaPath, "utf-8"));
 
     for (const [stationId, stationData] of Object.entries(maximaData)) {
@@ -840,7 +864,17 @@ async function main() {
 
     console.log("Maxima measurements seeded successfully 🌱");
 
-    const mittelPath = path.join(__dirname, "tagesmittel.json");
+    const mittelPath = path.join(
+      __dirname,
+      "prisma",
+      "utils",
+      "monatsmaxima.json"
+    );
+
+    // Check if the file exists
+    if (!fs.existsSync(mittelPath)) {
+      throw new Error(`File not found: ${mittelPath}`);
+    }
     const mittelData = JSON.parse(fs.readFileSync(mittelPath, "utf-8"));
 
     for (const [stationId, stationData] of Object.entries(mittelData)) {
@@ -859,7 +893,6 @@ async function main() {
     }
 
     console.log("Tagesmittel measurements seeded successfully 🌱");
-
   } catch (error) {
     console.error("Error seeding data: ", error);
   } finally {

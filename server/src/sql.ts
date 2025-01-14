@@ -1,5 +1,6 @@
-import { Prisma, User, UserRole } from "@prisma/client";
+import { User, UserRole, MeasurementType } from "@prisma/client";
 import { prisma } from "@server/prisma";
+import { verifyPassword } from "@utils/verifyPassword";
 
 export type UserWithAggregates = Omit<User, "password"> & {
   _count: {
@@ -287,15 +288,25 @@ export async function checkCredentials({
   email: string;
   password: string;
 }): Promise<User | null> {
-  const user = prisma.user.findFirst({
+  // const user = prisma.user.findFirst({
+  //   where: {
+  //     email,
+  //     password,
+  //   },
+  // });
+  const user = await prisma.user.findUnique({
     where: {
       email,
-      password,
     },
   });
   if (!user) {
     throw new Error("Invalid credentials");
   } else {
+    // Chceck that the password matches
+    const match = await verifyPassword(password, user.password);
+    if (!match) {
+      throw new Error("Invalid credentials");
+    }
     return user;
   }
 }
@@ -308,7 +319,7 @@ interface GetReportsParams {
   userLatitude?: number;
   userLongitude?: number;
   fromDate?: Date; // ← Add these
-  toDate?: Date;   // ← Add these
+  toDate?: Date; // ← Add these
 }
 
 export async function getReports({
@@ -339,14 +350,26 @@ export async function getReports({
   }
 
   // Handle special 'distance' sorting first
-  if (sortBy === "distance" && userLatitude !== undefined && userLongitude !== undefined) {
+  if (
+    sortBy === "distance" &&
+    userLatitude !== undefined &&
+    userLongitude !== undefined
+  ) {
     const validSortOrder = sortOrder === "desc" ? "DESC" : "ASC";
 
     // Convert fromDate/toDate to SQL if provided
     // (Adjust syntax to your DB if different)
     const dateFilterSQL = `
-      ${fromDate ? `AND "createdAt" >= ${prisma.$queryRaw`\`${fromDate.toISOString()}\``}` : ""}
-      ${toDate ? `AND "createdAt" <= ${prisma.$queryRaw`\`${toDate.toISOString()}\``}` : ""}
+      ${
+        fromDate
+          ? `AND "createdAt" >= ${prisma.$queryRaw`\`${fromDate.toISOString()}\``}`
+          : ""
+      }
+      ${
+        toDate
+          ? `AND "createdAt" <= ${prisma.$queryRaw`\`${toDate.toISOString()}\``}`
+          : ""
+      }
     `;
 
     // Calculate distance using the Haversine formula, then filter + sort
@@ -393,7 +416,7 @@ export async function getReports({
   const reports = await prisma.report.findMany({
     skip,
     take,
-    where,         // ← Apply your date-range filter here
+    where, // ← Apply your date-range filter here
     orderBy,
     include: {
       images: true,
@@ -769,6 +792,110 @@ export async function makeResponder(userId: string) {
       userRole: UserRole.RESPONDER,
     },
   });
+}
+
+export async function getReportsMap() {
+  const reports = await prisma.report.findMany({
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      latitude: true,
+      longitude: true,
+      createdAt: true,
+    },
+  });
+  return reports;
+}
+
+export async function getLatestReports() {
+  // Fetch the 4 latest reports - ordered by createdAt in descending order
+  const reports = await prisma.report.findMany({
+    take: 4,
+    orderBy: {
+      createdAt: "desc",
+    },
+    include: {
+      images: true,
+    },
+  });
+
+  // Manually pick the fields you need
+  return reports.map((report) => ({
+    id: report.id,
+    title: report.title,
+    description: report.description,
+    createdAt: report.createdAt,
+    images: report.images,
+  }));
+}
+
+interface Measurement {
+  id: string;
+  stationName: string;
+  waterBody: string;
+  catchmentArea: string;
+  operatingAuthority: string;
+  measurements: {
+    year: string;
+    value: number;
+  }[];
+}
+
+interface HistoricData {
+  minima?: Measurement;
+  maxima?: Measurement;
+  avg?: Measurement;
+}
+
+export async function getHistoricData(hzbnr: string) {
+  // Fetch the historic data for the given hzbnr
+  const measurements = await prisma.measurement.findMany({
+    where: {
+      hzbnr,
+    },
+  });
+
+  if (!measurements || measurements.length === 0) {
+    throw new Error("No historic data found for hzbnr: " + hzbnr);
+  }
+
+  // Initialize the grouped data
+  const groupedData: HistoricData = {};
+
+  // Group measurements by type
+  measurements.forEach((measurement) => {
+    switch (measurement.type) {
+      case MeasurementType.MINIMA:
+        groupedData.minima = measurement;
+        break;
+      case MeasurementType.MAXIMA:
+        groupedData.maxima = measurement;
+        break;
+      case MeasurementType.AVG:
+        groupedData.avg = measurement;
+        break;
+      default:
+        console.warn(`Unknown measurement type: ${measurement.type}`);
+    }
+  });
+
+  return groupedData;
+}
+
+export async function getAllHzbnr(): Promise<string[]> {
+  try {
+    const allHzbnr = await prisma.measurement.findMany({
+      distinct: ["hzbnr"],
+      select: {
+        hzbnr: true,
+      },
+    });
+    return allHzbnr.map((measurement: { hzbnr: string }) => measurement.hzbnr);
+  } catch (error) {
+    console.error("Error fetching all hzbnr:", error);
+    throw new Error("Error fetching all hzbnr");
+  }
 }
 
 export * as sql from "./sql";

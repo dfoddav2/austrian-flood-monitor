@@ -441,4 +441,105 @@ export const reports = new Elysia({ prefix: "/reports" })
           "Add a comment to a report if it is allowed for the signed in user",
       },
     }
+  )
+  .get(
+    "/get-map-report-info",
+    async ({ set }) => {
+      try {
+        const reports = await sql.getReportsMap();
+        set.status = 200;
+        return reports;
+      } catch (error) {
+        set.status = 500;
+        return { error: "Unknown error occurred" };
+      }
+    },
+    {
+      detail: {
+        tags: ["reports"],
+        description: "Get reports information for map",
+      },
+    }
+  )
+  .get(
+    "/get-latest-reports",
+    async ({ set }) => {
+      try {
+        const reports = await sql.getLatestReports();
+        set.status = 200;
+        return reports;
+      } catch (error) {
+        set.status = 500;
+        return { error: "Unknown error occurred" };
+      }
+    },
+    {
+      detail: {
+        tags: ["reports"],
+        description: "Get the latest reports",
+      },
+    }
+  )
+  .get(
+    "/get-all-hzbnr",
+    async ({ set }: AuthContext) => {
+      try {
+        const allHzbnr = await sql.getAllHzbnr();
+        console.log(allHzbnr);
+        set.status = 200;
+        return allHzbnr;
+      } catch (error) {
+        if (error instanceof Error) {
+          set.status = 500;
+          return { error: "Unknown error occurred" };
+        }
+      }
+      set.status = 500;
+      return { error: "Unknown error occurred" };
+    },
+    {
+      detail: {
+        tags: ["reports"],
+        description: "Get all hzbnr numbers available",
+      },
+    }
+  )
+  .post(
+    "/get-historic-data",
+    async ({
+      set,
+      body: { hzbnr },
+    }: AuthContextWithBody<{ hzbnr: string }>) => {
+      try {
+        console.log("Getting historic data for hzbnr:", hzbnr);
+        if (!hzbnr) {
+          set.status = 400;
+          return { error: "No hzbnr provided" };
+        }
+        const historicData = await sql.getHistoricData(hzbnr);
+        set.status = 200;
+        return historicData;
+      } catch (error) {
+        if (error instanceof Error) {
+          if (error.message.includes("historic")) {
+            set.status = 404;
+            return { error: error.message };
+          } else {
+            set.status = 500;
+            return { error: "Unknown error occurred" };
+          }
+        }
+        set.status = 500;
+        return { error: "Unknown error occurred" };
+      }
+    },
+    {
+      body: t.Object({
+        hzbnr: t.String(),
+      }),
+      detail: {
+        tags: ["reports"],
+        description: "Get historic data for a specific hzbnr",
+      },
+    }
   );

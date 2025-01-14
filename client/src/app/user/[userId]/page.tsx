@@ -75,8 +75,8 @@ export default function UserPage() {
         .post({ id: targetUserId as string })
         .then((response) => {
           if (response.status !== 200) {
-            setError(response.error.value);
-            console.error(response.error.value);
+            setError(response.error.value?.error || "Something went wrong");
+            console.error(response.error.value.error);
           } else {
             console.log("User details:", response.data);
             setUserDetails(response.data);
@@ -93,7 +93,7 @@ export default function UserPage() {
         .post({ authorId: targetUserId as string })
         .then((response) => {
           if (response.status !== 200) {
-            setError(response.error.value);
+            setError(response.error.value?.error || "Something went wrong");
             console.error(response.error.value);
           } else {
             console.log("Reports associated with user:", response.data);
@@ -152,9 +152,9 @@ export default function UserPage() {
   };
 
   return (
-    <div>
-      {!user && (
-        <Card>
+    <>
+      {!loadingUser && !user && (
+        <Card className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20">
           <CardHeader>
             <CardTitle>You are not logged in</CardTitle>
           </CardHeader>
@@ -171,27 +171,29 @@ export default function UserPage() {
         </Card>
       )}
       {error && (
-        <Alert variant="destructive" className="mb-5">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle className="font-bold text-base">Error</AlertTitle>
-          <AlertDescription>
-            <div className="flex justify-between items-center">
-              {error}
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  setError(null);
-                }}
-              >
-                Dismiss
-              </Button>
-            </div>
-          </AlertDescription>
-        </Alert>
+        <div className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle className="font-bold text-base">Error</AlertTitle>
+            <AlertDescription>
+              <div className="flex justify-between items-center">
+                {error}
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    setError(null);
+                  }}
+                >
+                  Dismiss
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        </div>
       )}
       {user && userDetails ? (
         // START OF CARD - USER && USERDETAILS
-        <Card>
+        <Card className="min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20 my-4">
           {/* USERDETAILS CARD HEADER */}
           <CardHeader>
             <CardTitle>{userDetails.username}</CardTitle>
@@ -291,7 +293,7 @@ export default function UserPage() {
           </CardFooter>
         </Card>
       ) : loadingUser ? (
-        <Card>
+        <Card className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20 my-4">
           <CardHeader>
             <CardTitle>Loading...</CardTitle>
           </CardHeader>
@@ -302,7 +304,7 @@ export default function UserPage() {
           </CardContent>
         </Card>
       ) : (
-        <Card>
+        <Card className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20 my-4">
           <CardHeader>
             <CardTitle>User not found</CardTitle>
           </CardHeader>
@@ -313,6 +315,6 @@ export default function UserPage() {
           </CardContent>
         </Card>
       )}
-    </div>
+    </>
   );
 }

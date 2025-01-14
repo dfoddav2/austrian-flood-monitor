@@ -191,27 +191,29 @@ export default function ReportCreationPage() {
   };
 
   return (
-    <div>
+    <>
       {error && (
-        <Alert variant="destructive" className="mb-5">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle className="font-bold text-base">Error</AlertTitle>
-          <AlertDescription>
-            <div className="flex justify-between items-center">
-              {error.toString()}
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  setError(null);
-                }}
-              >
-                Dismiss
-              </Button>
-            </div>
-          </AlertDescription>
-        </Alert>
+        <div className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20">
+          <Alert variant="destructive" className="mb-5">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle className="font-bold text-base">Error</AlertTitle>
+            <AlertDescription>
+              <div className="flex justify-between items-center">
+                {error.toString()}
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    setError(null);
+                  }}
+                >
+                  Dismiss
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        </div>
       )}
-      <Card className="min-w-96">
+      <Card className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20 my-4">
         <CardHeader>
           <CardTitle>Create a report</CardTitle>
           <CardDescription>Please note the requirements</CardDescription>
@@ -382,6 +384,6 @@ export default function ReportCreationPage() {
           </CardDescription>
         </CardFooter>
       </Card>
-    </div>
+    </>
   );
 }

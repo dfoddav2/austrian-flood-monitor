@@ -32,7 +32,7 @@ export default function VerifyPage() {
       .post(undefined)
       .then((response) => {
         if (response.status !== 200) {
-          setError(response.error.value.error);
+          setError(response.error.value?.error || "Something went wrong");
           console.error(response.error.value.error);
         } else {
           console.log("Email verification outcome:", response.data);

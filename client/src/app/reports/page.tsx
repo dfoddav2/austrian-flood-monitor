@@ -188,8 +188,8 @@ export default function ReportsPage() {
   ]);
 
   return (
-    <Card className="relative">
-      <div className="min-w-96"></div>
+    <Card className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20 my-4">
+      <div className=""></div>
       {user && (
         <div className="absolute top-5 right-5">
           <Link href="/reports/create" passHref>

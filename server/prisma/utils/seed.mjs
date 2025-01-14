@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import fs from "fs";
 import path from "path";
 // import { createId } from "@paralleldrive/cuid2";

@@ -19,18 +19,21 @@
   padding-top: 10%;
   padding-bottom: 10%;
   vertical-align: middle;
+  font-size: large;
 }
 
 
 .home_text {
   width: 50%;
   height: 50%;
-  text-align: left;
+  text-align: justify;
   margin-left: -25%;
   margin-right: 10%;
 }
 
 .home_nav {
+  border-style: solid;
+  border-color: white;
   width: 50%;
   text-align: center;
   margin-left: 50%;

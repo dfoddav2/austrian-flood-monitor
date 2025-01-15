@@ -56,7 +56,7 @@ export default function EditUserPage() {
         .post({ id: user.id })
         .then((response) => {
           if (response.status !== 200) {
-            setError(response.error.value);
+            setError(response.error.value?.error || "Something went wrong");
             console.error(response.error.value);
           } else {
             setUserDetails(response.data);
@@ -97,7 +97,7 @@ export default function EditUserPage() {
       .post(values)
       .then((response) => {
         if (response.status !== 200) {
-          setError(response.error.value);
+          setError(response.error.value?.error || "Something went wrong");
           console.error(response.error.value);
         } else {
           setCookie("authCookie", response.data.authCookie);

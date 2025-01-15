@@ -43,7 +43,7 @@ export default function VerifyTokenPage() {
         .post({ verificationToken })
         .then((response) => {
           if (response.status !== 200) {
-            setError(response.error.value.error);
+            setError(response.error.value?.error || "Something went wrong");
             console.error(response.error.value.error);
           } else {
             setCookie("authCookie", response.data.authCookie);

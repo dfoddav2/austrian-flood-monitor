@@ -99,6 +99,7 @@ const ReportPage = () => {
   const [loadingComment, setLoadingComment] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
+  const [reportNotFound, setReportNotFound] = useState(false);
 
   useEffect(() => {
     if (!reportId) {
@@ -112,7 +113,9 @@ const ReportPage = () => {
         .post({ reportId: reportIdStr })
         .then((response) => {
           if (response.status !== 200) {
-            console.error(response.error.value);
+            console.error(response.error.value.error);
+            setError(response.error.value?.error || "Something went wrong");
+            setReportNotFound(true);
           } else {
             console.log("Report", response.data);
             setReport(response.data);
@@ -139,7 +142,7 @@ const ReportPage = () => {
       .then((response) => {
         if (response.status !== 200) {
           // console.log("response", response);
-          setError(response.error.value.error);
+          setError(response.error.value?.error || "Something went wrong");
           console.error(response.error.value.error);
         } else {
           setReport((prevReport) => {
@@ -175,7 +178,7 @@ const ReportPage = () => {
       .post({ reportId: report.id })
       .then((response) => {
         if (response.status !== 200) {
-          setError(response.error.value.error);
+          setError(response.error.value?.error || "Something went wrong");
           console.error(response.error.value.error);
         } else {
           setReport((prevReport) => {
@@ -211,8 +214,8 @@ const ReportPage = () => {
       .delete({ reportId: report.id })
       .then((response) => {
         if (response.status !== 204) {
-          setError(response.error.value);
-          console.error(response.error.value);
+          setError(response.error.value?.error || "Something went wrong");
+          console.error(response.error.value.error);
         } else {
           router.push("/reports");
         }
@@ -262,7 +265,7 @@ const ReportPage = () => {
           form.reset();
           setIsCommentDialogOpen(false);
         } else {
-          setError(response.error.value.error);
+          setError(response.error.value?.error || "Something went wrong");
           console.error(response.error.value.error);
         }
       })
@@ -293,25 +296,27 @@ const ReportPage = () => {
   return (
     <div>
       {error && (
-        <Alert variant="destructive" className="mb-5">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle className="font-bold text-base">Error</AlertTitle>
-          <AlertDescription>
-            <div className="flex justify-between items-center">
-              {error.toString()}
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  setError(null);
-                }}
-              >
-                Dismiss
-              </Button>
-            </div>
-          </AlertDescription>
-        </Alert>
+        <div className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle className="font-bold text-base">Error</AlertTitle>
+            <AlertDescription>
+              <div className="flex justify-between items-center">
+                {error}
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    setError(null);
+                  }}
+                >
+                  Dismiss
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        </div>
       )}
-      <Card className="max-w-2xl relative">
+      <Card className="relative min-w-full sm:min-w-96 md:min-w-128 lg:min-w-160 xl:min-w-192 max-w-full sm:max-w-96 md:max-w-128 lg:max-w-160 xl:max-w-256 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20 my-4">
         {loading ? (
           <>
             <CardHeader>
@@ -427,6 +432,9 @@ const ReportPage = () => {
                     minute: "2-digit",
                   })}
                 </p>
+                <Button asChild variant="outline" className="mt-2">
+                  <Link href={"/user/" + report.authorId}>To author</Link>
+                </Button>
               </CardDescription>
               {report.images.length > 0 && (
                 <Carousel className="mx-8 mt-5">
@@ -467,7 +475,7 @@ const ReportPage = () => {
         ) : (
           <>
             <CardHeader>
-              <CardTitle>Report could not found</CardTitle>
+              <CardTitle>Report could not be found</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>
@@ -490,97 +498,107 @@ const ReportPage = () => {
       </Card>
       {(user?.userRole === "RESPONDER" ||
         user?.userRole === "ADMIN" ||
-        user?.id === report?.authorId) && (
-        <Card className="max-w-2xl mt-5 relative">
-          <CardHeader>
-            <CardTitle>Comments</CardTitle>
-          </CardHeader>
-          <CardContent className="mt-5">
-            {report?.comments?.map((comment) => (
-              <Card
-                key={comment.id}
-                className={`mb-4 ${
-                  comment.userId === user?.id
-                    ? "bg-slate-200 dark:bg-slate-800"
-                    : ""
-                }`}
-              >
-                <CardHeader>
-                  <CardTitle>{comment.user.username}</CardTitle>
-                  <CardDescription>
-                    {" "}
-                    {new Date(comment.timestamp).toLocaleString(undefined, {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p>{comment.content}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </CardContent>
-          <div className="absolute top-5 right-5 flex gap-2 items-center">
-            <AlertDialog open={isCommentDialogOpen} onOpenChange={setIsCommentDialogOpen}>
-              <AlertDialogTrigger asChild>
-                <Button
-                  aria-label="Comment"
-                  onClick={() => setIsCommentDialogOpen(true)}
+        user?.id === report?.authorId) &&
+        !reportNotFound && (
+          <Card className="relative min-w-full sm:min-w-96 md:min-w-128 lg:min-w-160 xl:min-w-192 max-w-full sm:max-w-96 md:max-w-128 lg:max-w-160 xl:max-w-256 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20">
+            <CardHeader>
+              <CardTitle>Comments</CardTitle>
+            </CardHeader>
+            <CardContent className="mt-5">
+              {report?.comments?.map((comment) => (
+                <Card
+                  key={comment.id}
+                  className={`mb-4 ${
+                    comment.userId === user?.id
+                      ? "bg-slate-200 dark:bg-slate-800"
+                      : ""
+                  }`}
                 >
-                  Comment
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Comment on this report</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Here you can give additional information or ask questions
-                    regarding the report.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(handleNewComment)}>
-                    <FormField
-                      control={form.control}
-                      name="comment"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Comment</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Write your comment here"
-                              {...field}
-                              rows={3}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Must be between 10 and 200 characters
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <Button
-                        type="submit" // Set type to submit
-                        disabled={loadingComment}
-                      >
-                        {loadingComment && <Loader2 className="animate-spin" />}
-                        Continue
-                      </Button>
-                    </AlertDialogFooter>
-                  </form>
-                </Form>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </Card>
-      )}
+                  <CardHeader>
+                    <CardTitle>
+                      <Link href={"/user/" + comment.userId}>
+                        {comment.user.username}
+                      </Link>
+                    </CardTitle>
+                    <CardDescription>
+                      {" "}
+                      {new Date(comment.timestamp).toLocaleString(undefined, {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p>{comment.content}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </CardContent>
+            <div className="absolute top-5 right-5 flex gap-2 items-center">
+              <AlertDialog
+                open={isCommentDialogOpen}
+                onOpenChange={setIsCommentDialogOpen}
+              >
+                <AlertDialogTrigger asChild>
+                  <Button
+                    aria-label="Comment"
+                    onClick={() => setIsCommentDialogOpen(true)}
+                  >
+                    Comment
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Comment on this report</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Here you can give additional information or ask questions
+                      regarding the report.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(handleNewComment)}>
+                      <FormField
+                        control={form.control}
+                        name="comment"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Comment</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Write your comment here"
+                                {...field}
+                                rows={3}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Must be between 10 and 200 characters
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <Button
+                          type="submit" // Set type to submit
+                          disabled={loadingComment}
+                        >
+                          {loadingComment && (
+                            <Loader2 className="animate-spin" />
+                          )}
+                          Continue
+                        </Button>
+                      </AlertDialogFooter>
+                    </form>
+                  </Form>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </Card>
+        )}
     </div>
   );
 };

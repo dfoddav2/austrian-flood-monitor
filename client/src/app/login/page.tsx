@@ -72,7 +72,7 @@ export default function LoginPage() {
 
         if (response.status !== 200) {
           console.error(response.error.value.error);
-          setError(response.error.value.error);
+          setError(response.error.value?.error || "Something went wrong");
         } else {
           setCookie("authCookie", response.data.authCookie);
           // setCookie("token", response.data.token);
@@ -108,7 +108,7 @@ export default function LoginPage() {
           </AlertDescription>
         </Alert>
       )}
-      <Card className="min-w-96">
+      <Card className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20 my-4">
         <CardHeader>
           <CardTitle>Login</CardTitle>
           <CardDescription>Please note the requirements</CardDescription>
@@ -123,7 +123,12 @@ export default function LoginPage() {
                   <FormItem>
                     <FormLabel>E-mail</FormLabel>
                     <FormControl>
-                      <Input placeholder="E-mail" type="email" {...field} />
+                      <Input
+                        placeholder="E-mail"
+                        type="email"
+                        {...field}
+                        className="max-w-96"
+                      />
                     </FormControl>
                     <FormDescription>
                       Must be a valid E-mail address
@@ -143,6 +148,7 @@ export default function LoginPage() {
                         placeholder="Password"
                         type="password"
                         {...field}
+                        className="max-w-96"
                       />
                     </FormControl>
                     <FormDescription>Minimum 8 characters</FormDescription>

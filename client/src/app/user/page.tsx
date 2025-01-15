@@ -57,6 +57,8 @@ export default function UserPage() {
   const [associatedReports, setAssociatedReports] = useState<
     AssociatedReport[] | null
   >(null);
+  const [totalScore, setTotalScore] = useState<number>(0);
+
   const [error, setError] = useState<string | null>(null);
   const [loadingDelete, setLoadingDelete] = useState<boolean>(false);
 
@@ -71,7 +73,7 @@ export default function UserPage() {
         .post({ id: user.id })
         .then((response) => {
           if (response.status !== 200) {
-            setError(response.error.value);
+            setError(response.error.value?.error || "Something went wrong");
             console.error(response.error.value);
           } else {
             console.log("User details:", response.data);
@@ -88,11 +90,18 @@ export default function UserPage() {
         .post({ authorId: user.id })
         .then((response) => {
           if (response.status !== 200) {
-            setError(response.error.value);
+            setError(response.error.value?.error || "Something went wrong");
             console.error(response.error.value);
           } else {
             console.log("Reports associated with user:", response.data);
             setAssociatedReports(response.data);
+            setTotalScore(
+              response.data.reduce(
+                (acc: number, report: AssociatedReport) =>
+                  acc + report.upvotes - report.downvotes,
+                0
+              )
+            );
           }
         })
         .catch((error) => {
@@ -142,7 +151,7 @@ export default function UserPage() {
   };
 
   return (
-    <div>
+    <>
       {!user && (
         <Card>
           <CardHeader>
@@ -161,26 +170,31 @@ export default function UserPage() {
         </Card>
       )}
       {error && (
-        <Alert variant="destructive" className="mb-5">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle className="font-bold text-base">Error</AlertTitle>
-          <AlertDescription>
-            <div className="flex justify-between items-center">
-              {error}
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  setError(null);
-                }}
-              >
-                Dismiss
-              </Button>
-            </div>
-          </AlertDescription>
-        </Alert>
+        <div className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20">
+          <Alert
+            variant="destructive"
+            className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20 mb-5"
+          >
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle className="font-bold text-base">Error</AlertTitle>
+            <AlertDescription>
+              <div className="flex justify-between items-center">
+                {error}
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    setError(null);
+                  }}
+                >
+                  Dismiss
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        </div>
       )}
       {user && (
-        <Card>
+        <Card className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20 my-4">
           <CardHeader>
             <CardTitle>Welcome, {user.username}!</CardTitle>
           </CardHeader>
@@ -222,6 +236,7 @@ export default function UserPage() {
                   <p>Email: {userDetails.email}</p>
                   <p>Name: {userDetails.name}</p>
                   <p>Verified: {userDetails.verified ? "True" : "False"}</p>
+                  <strong>Total score: {totalScore}</strong>
                 </CardDescription>
               </CardContent>
               <CardContent>
@@ -311,6 +326,6 @@ export default function UserPage() {
           )}
         </Card>
       )}
-    </div>
+    </>
   );
 }

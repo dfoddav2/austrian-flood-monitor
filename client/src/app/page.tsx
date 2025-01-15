@@ -8,6 +8,7 @@ import Link from "next/link";
 import styles from "../styles/home.module.css"
 
 export default function Home() {
+
   return (
     <div className={styles.page}>
       <div className={styles.home_text}>
@@ -28,6 +29,5 @@ export default function Home() {
         <p className="text-1xl font-bold">If you already have an account, please log in.</p>
         <Link href="/login"><Button className={styles.button}>Login</Button></Link>
       </div>
-    </div>
   );
 }

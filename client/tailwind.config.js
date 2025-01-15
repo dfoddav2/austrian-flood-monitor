@@ -4,6 +4,14 @@ module.exports = {
   content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
+      minWidth: {
+        96: "24rem", // 384px
+        128: "32rem", // 512px
+        160: "40rem", // 640px
+        192: "48rem", // 768px
+        224: "56rem", // 896px
+        256: "64rem", // 1024px
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",

@@ -74,7 +74,7 @@ export default function RegisterPage() {
         console.log("Outcome: ", response);
 
         if (response.status !== 201) {
-          setError(response.error.value.error);
+          setError(response.error.value?.error || "Something went wrong");
           console.error(response.error.value.error);
         } else {
           setCookie("authCookie", response.data.authCookie);
@@ -111,7 +111,7 @@ export default function RegisterPage() {
           </AlertDescription>
         </Alert>
       )}
-      <Card className="min-w-96">
+      <Card className="relative min-w-full sm:min-w-128 md:min-w-160 lg:min-w-192 xl:min-w-224 mx-4 sm:mx-8 md:mx-12 lg:mx-16 xl:mx-20 my-4">
         <CardHeader>
           <CardTitle>Register</CardTitle>
           <CardDescription>Please note the requirements</CardDescription>
@@ -126,7 +126,12 @@ export default function RegisterPage() {
                   <FormItem>
                     <FormLabel>E-mail</FormLabel>
                     <FormControl>
-                      <Input placeholder="E-mail" type="email" {...field} />
+                      <Input
+                        placeholder="E-mail"
+                        type="email"
+                        {...field}
+                        className="max-w-96"
+                      />
                     </FormControl>
                     <FormDescription>
                       Must be a valid E-mail address
@@ -142,7 +147,11 @@ export default function RegisterPage() {
                   <FormItem>
                     <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input placeholder="Name" {...field} />
+                      <Input
+                        placeholder="Name"
+                        {...field}
+                        className="max-w-96"
+                      />
                     </FormControl>
                     <FormDescription>Your full name</FormDescription>
                     <FormMessage />
@@ -156,7 +165,11 @@ export default function RegisterPage() {
                   <FormItem>
                     <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input placeholder="Username" {...field} />
+                      <Input
+                        placeholder="Username"
+                        {...field}
+                        className="max-w-96"
+                      />
                     </FormControl>
                     <FormDescription>Minimum 5 characters</FormDescription>
                     <FormMessage />
@@ -174,6 +187,7 @@ export default function RegisterPage() {
                         placeholder="Password"
                         type="password"
                         {...field}
+                        className="max-w-96"
                       />
                     </FormControl>
                     <FormDescription>Minimum 8 characters</FormDescription>

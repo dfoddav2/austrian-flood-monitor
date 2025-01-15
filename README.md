@@ -1,15 +1,62 @@
 # Austrian Flood Monitor
 
-Repository for the group work of WS24/25 Software Engineering and Project Management. The latest version of `main` can always be found hosted online at the following link:
-[Austrian Flood Monitor](https://austrian-flood-monitor.vercel.app/)
+Repository for the "group work" of WS24/25 Software Engineering and Project Management. The latest version of `main` can always be found hosted online at the following link:
+[Austrian Flood Monitor](https://austrian-flood-monitor.vercel.app/). (Server and database may need half a minute to spin up.)
 
 ## Overview
 
-Austrian Flood Monitoring is a comprehensive platform for reporting, monitoring, and managing floods in Austria. The project consists of a Next.js frontend and a Bun + Elysia.js backend, with a PostgreSQL database managed using Prisma ORM.
+Austrian Flood Monitoring is a comprehensive community driven platform for reporting, monitoring, and managing floods in Austria, collecting and visualizing publicly available data (both current and historic) mixed with reports / sightings made by our users.
+
+The main goal of the application is to better inform people about floodings and water levels in Austria and aid the work of emergency responders trying to get an overview of the situation, by giving them as much information as possible.
+
+There are four main user types of this application with different needs and capabilities:
+- **Visitor without account**: (Goal: get informed about current situation)
+   - They can see historical data, visualizations and even user reports, but can not interact with them. (Can't comment, upvote, etc...)
+   - This alligns with our goal of spreading information without barriers, trying to inform people in need as quick as possible.
+- **Regular users with accounts**: (Goal: get informed and contribute information to others like them)
+   - Once the user has registered they are sent a verification email, allowing them to verify their email. This status is showed on the user's profile page and can be used to prohibit them from using features until verified.
+   - They have all the capabilities that visitors without accounts have, but they can actually create and interact with reports, upvote / downvote them and commenting on / editing / deleting reports created by themselves.
+      - This voting system of reports is what gives credibility to reports created by users.
+- **Emergency Responders**: (Goal: get a quick overview of new sightings and communicate with users)
+   - They are special registered users, who have elevated privileges, capable of doing everything a regular signed in verified user can do.
+   - Additionally, they can comment on any report, not just their own with the goal of asking for more information or following up with the creators of reports, aiding their work of mitigating damages.
+- **Admins**: (Goal: manage the platform, it's users and reports, keeping it useful and helpful for it's users)
+   - They have all capabilities from before, plus they have access to a special admin's page, allowing them to search, filter and find users / reports via tables, then edit / delete them according to the platform's needs.
+
+### Tech stack
+
+The project consists of a Next.js frontend and a Bun + Elysia.js backend, with a PostgreSQL database managed using Prisma ORM, ran in Docker.
+
+Additionally here are some of the main libraries and packages used:
+- TailwindCSS
+- Shadcn
+- Leaflet
+- Nodemailer
+- Recharts
+- Zod
+
+### Services used
+
+For my own deployment of the application I used the following services, which allowed me to (of course with some caveats like spin up time) host my whole application completely freely:
+- [Vercel](https://vercel.com/) - Which is a natural fit for the Next.js frontend
+- [Render](https://render.com/) - For the Bun.js server
+- [Supabase](https://supabase.com/) - A very nice and modern database service for Postgres databases
+- [Mailtrap](https://mailtrap.io/) - As the SMTP provided for the Nodemailer of the application
+- [Cloudinary](https://cloudinary.com/) - For the image provided of the application, where the images of user reports get uploaded to and fetched from
+
+### Security considerations
+
+The project uses a Stateless Authentication system where upon registering / logging in / verifying ones email an authentication JWT token is created on server side and stored on the client's browser in the cookies.
+
+This combined with another cookie allows us to reinitialize the authentication state of the user even after leaving the website and returning to it and these credentials are included with every request to the server, which decodes the JWT matching the request with a user in our database, then acting accordingly.
+
+The JWT also has an expiry date variable baked into it, which right now isn't being utilized to return 401 to the user, (because it would also need to be handled on the frontend) but it could be relatively easily implemented given enough time.
+
+Another security measure that is not being utilized so much yet, but has been implemented is the user email verification, which similarly uses a JWT with expiry date baked into it. (This time around the expiry date is respected and expired tokens can not be used, need to request a new token.)
 
 ## Code structure and contribution
 
-Code structure of the application can always be found in the relevant directory's `README.md` file, with a short guide on how to contribute.
+Code structure of the application can always be found in the relevant directory's `README.md` file, with a short guide on how to run and contribute.
 
 ```plaintext
 Top Level
@@ -22,8 +69,6 @@ Top Level
 │   └── README.md
 ├── start-all.bat/.sh
 │   └── Scripts to run the whole application with one line
-├── docker-compose.yaml
-│    └── Starting up and seeding the database
 └── README.md (<- Yes, you are reading me at the moment)
 ```
 
@@ -31,7 +76,7 @@ Links to the other `README` files:
 - [Client README.md](./client/README.md)
 - [Server README.md](./server/README.md)
 
-## Setup
+## How to run / Setup
 
 ### Set up environment variables:
 
@@ -47,34 +92,36 @@ Once you have downloaded the `.env` file, make sure to put it in its rightful pl
 
 #### For outsiders
 
-Here is an outline of what it may look like:
+Here is an outline of what it may look like, of course your used services may require you to change these:
 
 ```env
 # Secrets
 POSTGRES_PASSWORD=   ...
 JWT_SECRET=          ...
+CLOUDINARY_URL=      ...
 
 # Database connections
 POSTGRES_HOST=       ...
 POSTGRES_DB=         ...
 POSTGRES_PORT=       ...
 DATABASE_URL=        ...
-```
+# Direct connection URL for migrations (same as DATABASE_URL for local development)
+DIRECT_URL=          ...
 
-### Install dependencies:
+# Dev environment
+NODE_ENV=development/deployment
 
-For the frontend:
+# Sessions, stores and cookies
+EXPIRES_IN=604800 # 7 days in seconds
 
-```sh
-cd client # Depends on your CWD
-npm install
-```
-
-For the backend:
-
-```sh
-cd server # Depends on your CWD
-bun install
+# SMTP and verification email (exact config depends on your chosen service)
+SMTP_SENDER=         ...
+SMTP_HOST=           ...
+SMTP_PORT=           ...
+SMTP_USER=           ...
+SMTP_PASS=           ...
+EXAMPLE_RECEIVER=    ...
+VERIFICATION_EXPIRY=86400 # 24 hours in seconds
 ```
 
 ## Getting Started
@@ -94,6 +141,22 @@ Start by cloning the repository. The repository is public, so you should easily 
 ```sh
 git clone https://github.com/yourusername/austrian-flood-monitor.git
 cd austrian-flood-monitor
+```
+
+### Installing dependencies:
+
+For the frontend:
+
+```sh
+cd client # Depends on your CWD
+npm install
+```
+
+For the backend (if you only ever run it in docker then this is not needed):
+
+```sh
+cd server # Depends on your CWD
+bun install
 ```
 
 ### Running the Application
@@ -130,7 +193,7 @@ For Linux / MacOS:
    docker-compose up
    ```
 
-   You may wish to detach from the containers, to do so just add the tag `-d` to the end of the compose.
+   You may wish to detach from the containers, to do so just add the tag `-d` to the end of the compose, or `--build` to build it.
 
 2. **Start the frontend:**
 
@@ -151,7 +214,7 @@ For Linux / MacOS:
 
    ```sh
    cd server # Depends on your CWD
-   DATABASE_URL=postgres://postgres:your-super-secret-and-long-postgres-password@localhost:5432/postgres npx prisma studio
+   DIRECT_URL=postgres://postgres:your-super-secret-and-long-postgres-password@localhost:5432/postgres npx prisma studio
    ```
 
 4. **Swagger UI:** (optional)

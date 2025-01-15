@@ -33,7 +33,7 @@ const cityCoordinates = {
 
 const getWaterLevelColor = (level: number) => {
   if (level < 2) return '#2563eb'; // Low water - blue
-  if (level < 4) return '#059669'; // Normal water - green
+  if (level < 4) return '#059669'; // Normal water - green color
   return '#dc2626'; // High water - red
 };
 

@@ -106,10 +106,10 @@ export const riverData = [
   {
     id: 16,
     name: "Lainsitz",
-    lat: 49.23343683691606,
-    lng: 14.386249496172047,
+    lat: 48.661815458230656,
+    lng:  14.8394133299308,
     waterLevel: 1.50,
-    description: "River monitored by Hydro NÖ"
+    description: "River monitored by St. Martin (Brücke Pölzl)"
   },
   {
     id: 15,

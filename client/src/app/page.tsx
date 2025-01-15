@@ -13,13 +13,13 @@ export default function Home() {
       <div className={styles.home_text}>
         <h1 className="text-3xl font-bold">Austrian Flood Monitoring - Home page</h1>
         <br></br>
-        <p>We provide the public with real-time* information about flooding activity, including warnings, visualization and additional information about current and projected threats.</p>
+        <p>We provide the public with real-time information about flooding activity, including warnings, visualization and additional information about current and projected threats.</p>
         <br></br>
-        <p>User are able to view a map of Austria that displays water-levels and reports of local floods.</p>
-        <p>Our service allows registered users to submit their own reports of floods, to inform others as well as relevant authorities who use the system to coordinate rescue and protective efforts.</p>
-        <p>Reports can have a description and images included.</p>
+        <p><Link href="/dash"><u>Here</u></Link> you will be able to view a map of Austria that displays water-levels both historical and current, as well as reports of local floods, so that you can recognize when dangerous water-levels are occuring.</p>
         <br></br>
-        <h1>WIP</h1>
+        <p>Once registered, you may submit your own reports of floods, to inform others as well as relevant authorities who use the system to coordinate rescue and protective efforts.</p>
+        <p>You will also be able to see more information on reports, and recieve notifications about rising water-levels near your location.</p>
+        <br></br>
       </div>
       <div className={styles.home_nav}>
         <p className="text-1xl font-bold">In order to use this service, you must have an account.</p>
